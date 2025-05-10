@@ -3,11 +3,13 @@ def get_all_broads():
     import pandas as pd
     import akshare as ak
     #获取所有板块
-    dfs = ak.stock_board_industry_name_em()
+    dfs = ak.stock_board_concept_name_ths()
+
+    print(dfs)
     
     #获取板块名称和板块代码
-    broad_name = dfs["板块名称"].tolist()
-    broad_code = dfs["板块代码"].tolist()
+    broad_name = dfs["name"].tolist()
+    broad_code = dfs["code"].tolist()
     
     #将板块名称和板块代码转换为字典
     broad_dict = dict(zip(broad_code, broad_name))
@@ -23,7 +25,7 @@ def get_all_broads():
     #     data.append({'板块代码': code, '板块名称': name})
     # df = pd.DataFrame(data)
     
-    df.to_csv("./Data/public/broad.csv", encoding="utf_8_sig")
+    df.to_csv("./Data/public/concept_broad.csv", encoding="utf_8_sig")
     return broad_dict
 
 
@@ -41,7 +43,7 @@ def get_broads_codes(broadFilePath):
     #遍历所有板块，获取每个板块包含的股票代码，并将股票代码保存到csv文件中
     for code in broad_code:
         #获取每个板块包含的股票代码
-        stock_df = ak.stock_board_industry_cons_em(symbol=code)
+        stock_df = ak.stock_board_concept_info_ths(symbol=code)
         stock_code = stock_df['代码'].tolist()
         stock_name = stock_df['名称'].tolist()
         #将股票代码和股票名称转换为字典
@@ -50,9 +52,9 @@ def get_broads_codes(broadFilePath):
         df = pd.DataFrame.from_dict(stock_dict, orient='index', columns=['名称'])
         df.index.name = '代码'  # 设置索引名称
         #csv文件为板块代码.csv
-        df.to_csv("./Data/public/industry_broads/" + code + ".csv", encoding="utf_8_sig")
+        df.to_csv("./Data/public/concept_broads/" + code + ".csv", encoding="utf_8_sig")
 
 
 if __name__ == '__main__':
-    # get_all_broads()
-    get_broads_codes("./Data/public/broad.csv")
+    get_all_broads()
+    # get_broads_codes("./Data/public/concept_broad.csv")

@@ -23,7 +23,7 @@ def get_all_broads():
     #     data.append({'板块代码': code, '板块名称': name})
     # df = pd.DataFrame(data)
     
-    df.to_csv("./Data/public/broad.csv", encoding="utf_8_sig")
+    df.to_csv("./Data/public/industry_broad.csv", encoding="utf_8_sig")
     return broad_dict
 
 
@@ -55,4 +55,4 @@ def get_broads_codes(broadFilePath):
 
 if __name__ == '__main__':
     # get_all_broads()
-    get_broads_codes("./Data/public/broad.csv")
+    get_broads_codes("./Data/public/industry_broad.csv")
