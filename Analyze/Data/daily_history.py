@@ -157,20 +157,35 @@ def get_data_by_date_range(begin_date, end_date):
 
     #检查代码映射文件是否存在，如果不存在则创建，并且调用get_all_stock_code()获取股票代码和名称的映射，并保存到文件中
     import os
-    if not os.path.exists('./Data/public/stock_code_name_map.json'):
+    if not os.path.exists('./Data/public/stock.csv'):
         stock_code_name_map = get_all_stock_code()
         if not stock_code_name_map:
             print("无法获取股票代码和名称列表，程序退出")
             return
-        with open('./Data/public/stock_code_name_map.json', 'w',encoding='utf-8') as f:
-            json.dump(stock_code_name_map, f)
+        df = pd.DataFrame.from_dict(stock_code_name_map, orient='index', columns=['股票名称'])
+        df.index.name = '股票代码'  # 设置索引名称
+        df.to_csv("./Data/public/stock.csv", encoding="utf_8_sig")
     else:
-        with open('./Data/public/stock_code_name_map.json', 'r',encoding='utf-8') as f:
-            stock_code_name_map = json.load(f)
+        # 从CSV文件中读取数据,股票代码必须映射为字符串
+        df = pd.read_csv("./Data/public/stock.csv", dtype={'股票代码': str}, encoding="utf_8_sig")
+        stock_code_name_map = dict(zip(df['股票代码'], df['股票名称']))
+        print(f"成功获取到 {len(stock_code_name_map)} 只股票代码和名称")
+
+    # import os
+    # if not os.path.exists('./Data/public/stock_code_name_map.json'):
+    #     stock_code_name_map = get_all_stock_code()
+    #     if not stock_code_name_map:
+    #         print("无法获取股票代码和名称列表，程序退出")
+    #         return
+    #     with open('./Data/public/stock_code_name_map.json', 'w',encoding='utf-8') as f:
+    #         json.dump(stock_code_name_map, f)
+    # else:
+    #     with open('./Data/public/stock_code_name_map.json', 'r',encoding='utf-8') as f:
+    #         stock_code_name_map = json.load(f)
     
-    print(f"成功获取到 {len(stock_code_name_map)} 只股票代码和名称")
-    #将stock_code_name_map按照代码排序
-    stock_code_name_map = dict(sorted(stock_code_name_map.items(), key=lambda item: item[0]))
+    # print(f"成功获取到 {len(stock_code_name_map)} 只股票代码和名称")
+    # #将stock_code_name_map按照代码排序
+    # stock_code_name_map = dict(sorted(stock_code_name_map.items(), key=lambda item: item[0]))
     
     # 限制股票数量，避免请求过多导致API限制
     # 可以根据需要调整或注释掉这一行
