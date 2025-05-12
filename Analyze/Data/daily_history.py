@@ -115,7 +115,7 @@ def get_all_daily(stock_code_name_map, begin_date, end_date):
             daily_df = daily_df[columns]
             daily_df_list.append(daily_df)
             print(f"{stock_code} 数据已下载")
-            # time.sleep(1)
+            time.sleep(1)
             #每10只股票保持一次数据到文件中
             if len(daily_df_list) % 10 == 0:
                 # 以追加的形式保存数据到文件中
@@ -271,12 +271,36 @@ def init_proxy_pool():
         print("继续执行，但不使用代理")
 
 
+
+#获取从start到end的所有交易日
+def get_trace_date_list(start,end):
+    import akshare as ak
+    from datetime import datetime
+    trade_date_list = ak.tool_trade_date_hist_sina()
+    trade_date_list = trade_date_list['trade_date'].tolist()
+    #将start和end转换为datetime格式
+    start_dt = datetime.strptime(start, '%Y-%m-%d')
+    end_dt = datetime.strptime(end, '%Y-%m-%d')
+    #获取start和end之间的所有交易日
+    date_list = []
+    for date_str in trade_date_list:
+        date_dt = datetime.strptime(str(date_str), '%Y-%m-%d')
+        if date_dt >= start_dt and date_dt <= end_dt:
+            date_list.append(date_str)  # 直接添加原始字符串
+    return date_list
+
+
 if __name__ == '__main__':
+    date_list = get_trace_date_list( '2025-04-01','2025-05-28')
+
+    for date in date_list:
+        get_data_by_date_range(str(date),str(date))
+
     # init_proxy_pool()
     # 调用函数获取指定日期范围的数据
-    begin_date = '2025-04-28'
-    end_date = '2025-04-30'
-    get_data_by_date_range(begin_date, end_date)
+    # begin_date = '2025-04-28'
+    # end_date = '2025-04-30'
+    # get_data_by_date_range(begin_date, end_date)
     # test = pd.read_csv('Data/daily/20250509.csv')
     # print(test)
     # print(type(test))

@@ -52,7 +52,30 @@ def cal_today_point(csv_path):
     return point
 
 if __name__ == '__main__':
-    point = cal_history_point("./Data/history/20250509.csv")
-    print(point)
-    # point = cal_today_point("./Data/daily/20250509.csv")
-    # print(point)
+    #获取Data目录下的所有csv文件，并且按照日期排序，依次计算
+    #获取Data目录下的所有csv文件
+    import os
+    files = os.listdir("./Data/history")
+    files.sort()
+    print(files)
+    #依次计算
+    points = []
+    for file in files:
+        # print(file)
+        point = cal_history_point("./Data/history/"+file)
+        print(file,point)
+        points.append(point)
+    #画曲线图，横轴为日期，纵轴为挣钱效应，最低0，最高100,并且在横轴上标注日期
+    #使用matplotlib
+    import matplotlib.pyplot as plt
+    import numpy as np
+    #获取横轴
+    x = np.arange(len(points))
+    #获取纵轴
+    y = points
+    #画图
+    plt.plot(x,y)
+    #标注日期
+    plt.xticks(x,files,rotation=50)
+    #显示图形
+    plt.show()
