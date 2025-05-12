@@ -34,7 +34,13 @@ def get_all_real_time():
     #将实时股票数据保持到csv文件中,文件名为年月日.csv
     import datetime
     now = datetime.datetime.now()
-    file_name = "./Data/daily/" + now.strftime("%Y%m%d") + ".csv"
+    #获取年月日分钟
+    import os
+    #判断"./Data/daily/"+now.strftime("%Y%m%d") 目录是否存在，如果不存在则创建
+    if not os.path.exists("./Data/daily/"+now.strftime("%Y%m%d")):
+        os.makedirs("./Data/daily/"+now.strftime("%Y%m%d"))
+    #保存到csv文件中
+    file_name = "./Data/daily/"+now.strftime("%Y%m%d") + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
     stock_df.to_csv(file_name, index=False)
     print(f"实时股票数据已保存至 {file_name}")
     return stock_df
@@ -45,4 +51,33 @@ if __name__ == '__main__':
     # begin_date = '2023-01-01'
     # end_date = '2023-01-05'
     # get_data_by_date_range(begin_date, end_date)
-    get_all_real_time()
+    #常驻任务，每五分钟获取一次数据，并且只在开盘时间获取数据
+    #获取当前时间
+
+    
+    #死循环
+     while True:
+        #如果当前时间小于9:15或者大于15:05，则休眠1分钟，否则则每五分钟获取一次数据
+        #获取当前时间
+        import datetime
+        now = datetime.datetime.now()
+        #如果当前时间小于9:15或者大于15:05，则休眠1分钟，否则则每五分钟获取一次数据
+        import datetime
+        now = datetime.datetime.now()
+        if (now.hour < 9 and now.minute < 10)  or (now.hour >= 15 and now.minute > 5):
+            print("当前时间不在开盘时间，休眠1分钟")
+            import time
+            time.sleep(60)
+            continue
+        if now.minute % 5 != 0:
+            print("当前时间不在5分钟的倍数，休眠1分钟")
+            import time
+            time.sleep(60)
+            continue
+        else:
+            print("开始获取数据：",now)
+            get_all_real_time()
+            print("获取数据完毕：",now)
+
+
+        
