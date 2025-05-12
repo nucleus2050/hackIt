@@ -82,7 +82,7 @@ def get_all_daily(stock_code_name_map, begin_date, end_date):
         daily_data = dfs[1].tolist()
     else:
         daily_data = []
-    print(f"已下载 {len(daily_data)} 只股票数据")
+    print(f"已下载 {len(daily_data)} 数据")
 
     # 遍历股票代码，获取每只股票的日K数据
     #每10只股票保持一次数据到文件中
@@ -291,7 +291,7 @@ def get_trace_date_list(start,end):
 
 
 if __name__ == '__main__':
-    date_list = get_trace_date_list( '2025-04-18','2025-05-28')
+    date_list = get_trace_date_list( '2025-05-12','2025-05-12')
 
     for date in date_list:
         get_data_by_date_range(str(date),str(date))
