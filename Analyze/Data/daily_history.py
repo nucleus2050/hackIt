@@ -115,7 +115,7 @@ def get_all_daily(stock_code_name_map, begin_date, end_date):
             daily_df = daily_df[columns]
             daily_df_list.append(daily_df)
             print(f"{stock_code} 数据已下载")
-            # time.sleep(1)
+            time.sleep(1)
             #每10只股票保持一次数据到文件中
             if len(daily_df_list) % 10 == 0:
                 # 以追加的形式保存数据到文件中
