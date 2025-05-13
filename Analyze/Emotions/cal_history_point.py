@@ -60,12 +60,24 @@ if __name__ == '__main__':
     print(files)
     #依次计算
     points = []
+    points5Days = []
+    pointIndex = 0
     for file in files:
         # print(file)
+        pointIndex += 1
         point = cal_history_point("./Data/history/"+file)
         print(file,point)
         points.append(point)
-    #画曲线图，横轴为日期，纵轴为挣钱效应，最低0，最高100,并且在横轴上标注日期
+        #计算最近5天的平均挣钱效应，并且将结果保存到points5Days数组中，如果不足5天，则计算最近的天数的平均挣钱效应
+        #如果不足5天，则计算最近的天数的平均挣钱效应
+        if pointIndex < 5:
+            points5Days.append(sum(points)/pointIndex)
+        else:
+            points5Days.append(sum(points[pointIndex-5:pointIndex])/5)
+        
+
+
+    #画曲线图，横轴为日期，纵轴为挣钱效应，最低0，最高100,并且在横轴上标注日期,并且在纵轴上标注最近5天的平均挣钱效应
     #使用matplotlib
     import matplotlib.pyplot as plt
     import numpy as np
@@ -76,6 +88,10 @@ if __name__ == '__main__':
     #画图
     plt.plot(x,y)
     #标注日期
+    #将files中的.csv去掉
+    files = [file[:-4] for file in files]
     plt.xticks(x,files,rotation=50)
+    #标注最近5天的平均挣钱效应
+    plt.plot(x,points5Days)
     #显示图形
     plt.show()
