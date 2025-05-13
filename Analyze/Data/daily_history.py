@@ -291,7 +291,7 @@ def get_trace_date_list(start,end):
 
 
 if __name__ == '__main__':
-    date_list = get_trace_date_list( '2025-05-06','2025-05-06')
+    date_list = get_trace_date_list( '2024-09-01','2025-03-31')
 
     for date in date_list:
         get_data_by_date_range(str(date),str(date))
