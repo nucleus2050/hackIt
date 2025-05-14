@@ -62,22 +62,24 @@ if __name__ == '__main__':
         import datetime
         now = datetime.datetime.now()
         #如果当前时间小于9:15或者大于15:05，则休眠1分钟，否则则每五分钟获取一次数据
+        #并且排除中午11:30-13:00,不开盘时间
         import datetime
         now = datetime.datetime.now()
-        if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 5)):
+        if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 5)) \
+            or (now.hour == 11 and now.minute > 30) or (now.hour == 12 ) :
             print("当前时间不在开盘时间，休眠1分钟")
             import time
             time.sleep(60)
             continue
-        if now.minute % 5 != 0:
+        if now.minute % 5 == 0:
+            print("开始获取数据：",now)
+            get_all_real_time()
+            print("获取数据完毕：",now)
+        else:
             print("当前时间不在5分钟的倍数，休眠1分钟")
             import time
             time.sleep(60)
             continue
-        else:
-            print("开始获取数据：",now)
-            get_all_real_time()
-            print("获取数据完毕：",now)
 
 
         
