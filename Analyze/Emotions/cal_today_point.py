@@ -1,4 +1,21 @@
 
+def cal_daily_point(high,low,close):
+    #遍历每一个股票
+    point = 0
+    for i in range(len(high)):
+        #计算当天的挣钱效应
+        #close/low/high转为float
+        # print(high[i],low[i],close[i])
+        h = float(high[i])
+        l = float(low[i])
+        c = float(close[i])
+        if h == l and c == l:
+            point += 100
+        else :
+            point += (c - l) * 100 / (h-l)
+        
+    return point/len(high)
+
 
 def cal_today_point(csv_path):
     import os
@@ -29,20 +46,20 @@ if __name__ == '__main__':
     points = []
     for file in files:
         # print(file)
-        point = cal_today_point("./Data/daily/"+datetime.datetime.now().strftime("%Y%m%d")+file)
+        point = cal_today_point("./Data/daily/"+datetime.datetime.now().strftime("%Y%m%d")+ "/" +file)
         print(file,point)
         points.append(point)
     #画曲线图，横轴为日期，纵轴为挣钱效应，最低0，最高100,并且在横轴上标注日期
     #使用matplotlib
-    #import matplotlib.pyplot as plt
-    #import numpy as np
-    #获取横轴
-    #x = np.arange(len(points))
-    #获取纵轴
-    #y = points
-    #画图
-    #plt.plot(x,y)
-    #标注日期
-    #plt.xticks(x,files,rotation=50)
-    #显示图形
-    #plt.show()
+    import matplotlib.pyplot as plt
+    import numpy as np
+    # 获取横轴
+    x = np.arange(len(points))
+    # 获取纵轴
+    y = points
+    # 画图
+    plt.plot(x,y)
+    # 标注日期
+    plt.xticks(x,files,rotation=50)
+    # 显示图形 
+    plt.show()
