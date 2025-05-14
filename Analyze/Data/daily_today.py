@@ -64,7 +64,7 @@ if __name__ == '__main__':
         #如果当前时间小于9:15或者大于15:05，则休眠1分钟，否则则每五分钟获取一次数据
         import datetime
         now = datetime.datetime.now()
-        if (now.hour < 9 and now.minute < 10)  or (now.hour >= 15 and now.minute > 5):
+        if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 5)):
             print("当前时间不在开盘时间，休眠1分钟")
             import time
             time.sleep(60)
