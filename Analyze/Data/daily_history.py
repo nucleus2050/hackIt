@@ -291,16 +291,25 @@ def get_trace_date_list(start,end):
 
 
 if __name__ == '__main__':
-    date_list = get_trace_date_list( '2024-09-01','2025-03-31')
+    import akshare as ak
+    from datetime import datetime
+    import datetime
+    import time
+    trade_date_list = ak.tool_trade_date_hist_sina()
+    trade_date_list = trade_date_list['trade_date'].tolist()
+    while True:
+        now = datetime.datetime.now()
+        now_date = now.date()
+        if now_date in trade_date_list:
+            if now.hour == 15 and now.minute == 0:
+                #获取数据
+                get_data_by_date_range(str(now_date),str(now_date))
+            else:
+                print("当前不是交易时间，等待1分钟")
+                time.sleep(60)
 
-    for date in date_list:
-        get_data_by_date_range(str(date),str(date))
 
-    # init_proxy_pool()
-    # 调用函数获取指定日期范围的数据
-    # begin_date = '2025-04-28'
-    # end_date = '2025-04-30'
-    # get_data_by_date_range(begin_date, end_date)
-    # test = pd.read_csv('Data/daily/20250509.csv')
-    # print(test)
-    # print(type(test))
+# if __name__ == '__main__':
+#     date_list = get_trace_date_list( '2024-09-01','2025-03-31')
+#     for date in date_list:
+#         get_data_by_date_range(str(date),str(date))
