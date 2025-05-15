@@ -301,11 +301,11 @@ if __name__ == '__main__':
         now = datetime.datetime.now()
         now_date = now.date()
         if now_date in trade_date_list:
-            if now.hour == 15 and now.minute == 0:
+            if now.hour == 15 and now.minute == 1:
                 #获取数据
                 get_data_by_date_range(str(now_date),str(now_date))
             else:
-                print("当前不是交易时间，等待1分钟")
+                print("当前还没收盘，等待1分钟")
                 time.sleep(60)
 
 
