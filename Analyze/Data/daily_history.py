@@ -308,8 +308,9 @@ if __name__ == '__main__':
                 print("当前还没收盘，等待1分钟")
                 time.sleep(60)
 
-
-# if __name__ == '__main__':
-#     date_list = get_trace_date_list( '2024-09-01','2025-03-31')
-#     for date in date_list:
-#         get_data_by_date_range(str(date),str(date))
+'''
+if __name__ == '__main__':
+    date_list = get_trace_date_list( '2025-05-12','2025-05-16')
+    for date in date_list:
+        get_data_by_date_range(str(date),str(date))
+'''
