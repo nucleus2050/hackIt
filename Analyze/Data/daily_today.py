@@ -74,11 +74,12 @@ if __name__ == '__main__':
         if now.minute % 5 == 0:
             print("开始获取数据：",now)
             get_all_real_time()
+            time.sleep(60)
             print("获取数据完毕：",now)
         else:
             print("当前时间不在5分钟的倍数，休眠1分钟")
             import time
-            time.sleep(60)
+            time.sleep(3)
             continue
 
 
