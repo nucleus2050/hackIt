@@ -34,6 +34,12 @@ def cal_today_point(csv_path):
     low = df['最低'].tolist()
     close = df['最新价'].tolist()
     #计算当天的挣钱效应
+    if len(high) != len(low) or len(high) != len(close):
+        print("数据长度不一致")
+        return 0
+    if len(high) == 0 or len(low) == 0 or len(close) == 0:
+        print("数据长度为0")
+        return 0
     point = cal_daily_point(high,low,close)
     return point
 
@@ -68,10 +74,10 @@ class DetectFileHandler(FileSystemEventHandler):
         """当检测到新文件创建时调用此方法"""
         if not event.is_directory:
             print(f"检测到新文件: {event.src_path}")
+            time.sleep(1)
             point = cal_today_point(event.src_path)
             print(event.src_path,point)
-            if point < 30.0:
-                time.sleep(1)
+            if point < 30.0 and point > 0.0:
                 email_body = "cur point is " + str(point) + " less than 30.0"
                 send_email(sender_email, sender_password, receiver_email, email_subject, email_body)
 
