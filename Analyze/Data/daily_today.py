@@ -1,5 +1,6 @@
 import akshare as ak
 import pandas as pd
+import history_zt
 
 #获取当天实时行情数据
 #参数：
@@ -37,10 +38,10 @@ def get_all_real_time():
     #获取年月日分钟
     import os
     #判断"./Data/daily/"+now.strftime("%Y%m%d") 目录是否存在，如果不存在则创建
-    if not os.path.exists("./Data/daily/"+now.strftime("%Y%m%d")):
-        os.makedirs("./Data/daily/"+now.strftime("%Y%m%d"))
+    if not os.path.exists("./Data/daily/point/"+now.strftime("%Y%m%d")):
+        os.makedirs("./Data/daily/point/"+now.strftime("%Y%m%d"))
     #保存到csv文件中
-    file_name = "./Data/daily/"+now.strftime("%Y%m%d") + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
+    file_name = "./Data/daily/point/"+now.strftime("%Y%m%d") + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
     stock_df.to_csv(file_name, index=False)
     print(f"实时股票数据已保存至 {file_name}")
     return stock_df
@@ -53,18 +54,29 @@ if __name__ == '__main__':
     # get_data_by_date_range(begin_date, end_date)
     #常驻任务，每五分钟获取一次数据，并且只在开盘时间获取数据
     #获取当前时间
-
     
+    trade_date_list = ak.tool_trade_date_hist_sina()
+    trade_date_list = trade_date_list['trade_date'].tolist()
     #死循环
-     while True:
+    while True:
         #如果当前时间小于9:15或者大于15:05，则休眠1分钟，否则则每五分钟获取一次数据
         #获取当前时间
         import datetime
         now = datetime.datetime.now()
+        now_date = now.date()
+        if now_date in trade_date_list:
+            print("当前日期为交易日")
+        else:
+            print("当前日期为非交易日")
+            import time
+            time.sleep(60)
+            continue
+
         #如果当前时间小于9:15或者大于15:05，则休眠1分钟，否则则每五分钟获取一次数据
         #并且排除中午11:30-13:00,不开盘时间
-        import datetime
         now = datetime.datetime.now()
+        today_format = now.strftime("%Y%m%d")
+
         if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 5)) \
             or (now.hour == 11 and now.minute > 30) or (now.hour == 12 ) :
             print("当前时间不在开盘时间，休眠1分钟")
@@ -74,6 +86,7 @@ if __name__ == '__main__':
         if now.minute % 5 == 0:
             print("开始获取数据：",now)
             get_all_real_time()
+            history_zt.get_all_zt_code_real_time(today_format)
             time.sleep(60)
             print("获取数据完毕：",now)
         else:

@@ -63,7 +63,7 @@ def send_email(sender, password, receiver, subject, body):
 sender_email = "15889320552@139.com"
 sender_password = "99c56e7298db37305600" 
 receiver_email = "15889320552@139.com"
-email_subject = "It may be a good change"
+email_subject = "alter alter alter alter"
 
 class DetectFileHandler(FileSystemEventHandler):
     global sender_email
@@ -75,10 +75,19 @@ class DetectFileHandler(FileSystemEventHandler):
         if not event.is_directory:
             print(f"检测到新文件: {event.src_path}")
             time.sleep(1)
-            point = cal_today_point(event.src_path)
-            print(event.src_path,point)
-            if point < 30.0 and point > 0.0:
-                email_body = "cur point is " + str(point) + " less than 30.0"
+            #如果文件时point目录下的文件，则计算当天的挣钱效应
+            if "point" in event.src_path:
+                point = cal_today_point(event.src_path)
+                print(event.src_path,point)
+                if point < 30.0 and point > 0.0:
+                    email_body = "cur point is " + str(point) + " less than 30.0"
+                    send_email(sender_email, sender_password, receiver_email, email_subject, email_body)
+            if "zt" in event.src_path:
+                time.sleep(1)
+                #如果文件时zt目录下的文件，计算总成交额和封板资金
+                import cal_zt_zj
+                zt_zj,zt_cj = cal_zt_zj.cal_zt_zj_simple(event.src_path)
+                email_body = "cur zt_zj is " + str(zt_zj) + " zt_cj is " + str(zt_cj) + " zt_zj/zt_cj is " + str(zt_zj/zt_cj)
                 send_email(sender_email, sender_password, receiver_email, email_subject, email_body)
 
 def monitor_directory(path):
