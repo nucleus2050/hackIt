@@ -297,6 +297,7 @@ if __name__ == '__main__':
     import time
     trade_date_list = ak.tool_trade_date_hist_sina()
     trade_date_list = trade_date_list['trade_date'].tolist()
+    import history_zt
     while True:
         now = datetime.datetime.now()
         now_date = now.date()
@@ -304,6 +305,8 @@ if __name__ == '__main__':
             if now.hour == 15 and now.minute == 1:
                 #获取数据
                 get_data_by_date_range(str(now_date),str(now_date))
+                data_str_today  = str.replace(str(now_date),'-','')
+                history_zt.get_all_zt_code()
             else:
                 print("当前还没收盘，等待1分钟")
                 time.sleep(60)
