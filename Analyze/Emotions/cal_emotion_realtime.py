@@ -86,9 +86,13 @@ class DetectFileHandler(FileSystemEventHandler):
                 time.sleep(1)
                 #如果文件时zt目录下的文件，计算总成交额和封板资金
                 import cal_zt_zj
-                zt_zj,zt_cj = cal_zt_zj.cal_zt_zj_simple(event.src_path)
-                email_body = "cur zt_zj is " + str(zt_zj) + " zt_cj is " + str(zt_cj) + " zt_zj/zt_cj is " + str(zt_zj/zt_cj)
-                send_email(sender_email, sender_password, receiver_email, email_subject, email_body)
+                try:
+                    zt_zj,zt_cj = cal_zt_zj.cal_zt_zj_simple(event.src_path)
+                    email_body = "cur zt_zj is " + str(zt_zj) + " zt_cj is " + str(zt_cj) + " zt_zj/zt_cj is " + str(zt_zj/zt_cj)
+                    send_email(sender_email, sender_password, receiver_email, email_subject, email_body)
+                except Exception as e:
+                    print("cal_zt_zj error",e)
+                
 
 def monitor_directory(path):
     """监控指定目录的新增文件"""
@@ -122,6 +126,6 @@ def monitor_directory(path):
 
 if __name__ == "__main__":
     # 设置要监控的目录
-    directory_to_monitor = "/root/code/hackIt/Data/daily"  # 替换为你要监控的目录路径
+    directory_to_monitor = "./Data/daily"  # 替换为你要监控的目录路径
     # 开始监控
     monitor_directory(directory_to_monitor)
