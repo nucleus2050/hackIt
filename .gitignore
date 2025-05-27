@@ -2,3 +2,7 @@ nohup.out
 emotion.log
 Analyze\Emotions\__pycache__
 *.pyc
+*__pycache__
+*.pyc
+*.pyd
+*.pyo
