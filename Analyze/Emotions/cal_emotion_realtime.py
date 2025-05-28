@@ -93,13 +93,13 @@ class DetectFileHandler(FileSystemEventHandler):
                     zt_zj,zt_cj = cal_zt_zj.cal_zt_zj_simple(event.src_path)
                     email_body = "cur zt_zj is " + str(zt_zj) + " zt_cj is " + str(zt_cj) + " zt_zj/zt_cj is " + str(zt_zj/zt_cj)
                     if point < 30.0 and point > 0.0:
-                        email_body = "point:" + str(point) + " less than 30.0" + "\n"
-                        email_body += "fb:" + str(zt_zj) + "\n"
+                        email_body = "point:" + str(point) + "\n"
+                        email_body += "fb:" + str(zt_zj) + "\n" 
                         email_body += "cj:" +  str(zt_cj) + "\n"
                         email_body += "fcb:" +  str(zt_zj/zt_cj) + "\n"
                         send_email(sender_email, sender_password, receiver_email, email_subject_alter, email_body)
                     else:
-                        email_body = "point:" + str(point) + " greater than 30.0" + "\n"
+                        email_body = "point:" + str(point) +  "\n"
                         email_body += "fb:" + str(zt_zj) + "\n"
                         email_body += "cj:" +  str(zt_cj) + "\n"
                         email_body += "fcb:" +  str(zt_zj/zt_cj) + "\n"
