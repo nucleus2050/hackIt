@@ -99,7 +99,7 @@ class DetectFileHandler(FileSystemEventHandler):
             #判读是否在9:30之前，如果是则什么也不干
             import datetime
             now = datetime.datetime.now()
-            if now.hour < 9 or (now.hour == 9 and now.minute < 30):
+            if now.hour < 9 or (now.hour == 9 and now.minute < 25):
                 print("9:30之前，不计算")
                 return
             
