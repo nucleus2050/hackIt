@@ -66,6 +66,27 @@ receiver_email = "15889320552@139.com"
 email_subject_notify = "nofify"
 email_subject_alter = "alter"
 
+
+#获取上一个交易日的日期
+def get_pre_trade_date(filePath):
+    #获取filePath的上上级目录
+    import os
+    path = os.path.dirname(os.path.dirname(filePath))
+    #获取path下的所有文件
+    files = os.listdir(path)
+    files.sort()
+    #如果files长度小于2，则返回今天的日期
+    #获取path下的所有文件的日期
+    if len(files) >= 2:
+        return files[-2]
+    else:
+        import datetime
+        now = datetime.datetime.now()
+        today_format = now.strftime("%Y%m%d")
+        return today_format
+
+
+
 class DetectFileHandler(FileSystemEventHandler):
     global sender_email
     global sender_password
@@ -87,28 +108,62 @@ class DetectFileHandler(FileSystemEventHandler):
                 time.sleep(1)
                 #如果文件时zt目录下的文件，计算总成交额和封板资金
                 import cal_zt_zj
+                import datetime
+                now = datetime.datetime.now()
+                today_format = now.strftime("%Y%m%d")
                 try:
                     point_path = event.src_path.replace("zt","point")
                     zb_path = event.src_path.replace("zt","zb")
-                    point = cal_today_point(point_path)
+
+                    pre_date = get_pre_trade_date(event.src_path)
+                    pre_point_path = point_path.replace(today_format,pre_date)
+                    pre_zb_path = zb_path.replace(today_format,pre_date)
+                    pre_zt_path = event.src_path.replace(today_format,pre_date)
+                    
+                    print("pre_date:",pre_date)
+                    print("pre_point_path:",pre_point_path)
+                    print("pre_zb_path:",pre_zb_path)
+                    print("event.src_path:",event.src_path)
+
                     zt_zj,zt_cj = cal_zt_zj.cal_zt_zj_simple(event.src_path)
+                    point = cal_today_point(point_path)
                     zb_cj = cal_zt_zj.cal_zb_zj_simple(zb_path)
-                    email_body = "cur zt_zj is " + str(zt_zj) + " zt_cj is " + str(zt_cj) + " zt_zj/zt_cj is " + str(zt_zj/zt_cj)
-                    if point < 30.0 and point > 0.0:
-                        email_body = "point:" + str(point) + "\n"
-                        email_body += "fb:" + str(zt_zj) + "\n" 
-                        email_body += "cj:" +  str(zt_cj) + "\n"
-                        email_body += "fcb:" +  str(zt_zj/zt_cj) + "\n"
-                        email_body += "zb:" +  str(zb_cj) + "\n"
-                        email_body += "tocal_cj:" +str(zb_cj+zt_cj) + "\n"
+
+                    #判断前一天的文件是否存在,存在着计算,不存在着不计算
+                    if os.path.exists(pre_point_path) :
+                        pre_point = cal_today_point(pre_point_path)
+                    else:
+                        pre_point = 0.0
+                    
+                    if os.path.exists(pre_zb_path) :
+                        pre_zb_cj = cal_zt_zj.cal_zb_zj_simple(pre_zb_path)
+                    else:
+                        pre_zb_cj = 0.0
+
+                    if os.path.exists(pre_zt_path) :
+                        pre_zt_zj,pre_zt_cj = cal_zt_zj.cal_zt_zj_simple(pre_zt_path)
+                    else:
+                        pre_zt_zj = 0.0
+                        pre_zt_cj = 0.0
+
+                    #判断前一天的文件是否存在,存在着计算,不存在着不计算
+                    email_body = "point:" + str(point) + "\n"
+                    email_body += "fb:" + str(zt_zj) + "\n" 
+                    email_body += "cj:" +  str(zt_cj) + "\n"
+                    email_body += "fcb:" +  str(zt_zj/zt_cj) + "\n"
+                    email_body += "zb:" +  str(zb_cj) + "\n"
+                    email_body += "tocal_cj:" +str(zb_cj+zt_cj) + "\n"
+                    #加上前一天的数据
+                    email_body += "pre_point:" + str(pre_point) + "\n"
+                    email_body += "pre_fb:" + str(pre_zt_zj) + "\n"
+                    email_body += "pre_cj:" +  str(pre_zt_cj) + "\n"
+                    email_body += "pre_fcb:" +  str(pre_zt_zj/pre_zt_cj) + "\n"
+                    email_body += "pre_zb:" +  str(pre_zb_cj) + "\n"
+                    email_body += "pre_tocal_cj:" +str(pre_zb_cj+pre_zt_cj) + "\n"
+
+                    if (point < 30.0 and point > 0.0) or (pre_zb_cj+pre_zt_cj)/(zb_cj+zt_cj) > 1.5 or (zb_cj+zt_cj)/(pre_zb_cj+pre_zt_cj) > 1.5:
                         send_email(sender_email, sender_password, receiver_email, email_subject_alter, email_body)
                     else:
-                        email_body = "point:" + str(point) +  "\n"
-                        email_body += "fb:" + str(zt_zj) + "\n"
-                        email_body += "cj:" +  str(zt_cj) + "\n"
-                        email_body += "fcb:" +  str(zt_zj/zt_cj) + "\n"
-                        email_body += "zb:" +  str(zb_cj) + "\n"
-                        email_body += "tocal_cj:" +str(zb_cj+zt_cj) + "\n"
                         send_email(sender_email, sender_password, receiver_email, email_subject_notify, email_body)
                 except Exception as e:
                     print("cal_zt_zj error",e)
