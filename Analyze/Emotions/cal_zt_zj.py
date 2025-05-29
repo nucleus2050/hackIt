@@ -76,6 +76,21 @@ def cal_zt_zj_simple(file):
     print(f"涨停板股票的总成交额: {zt_cj}")
     return zt_zj,zt_cj
 
+#计算当天炸板股票的总资金，以及成交额
+def cal_zb_zj_simple(file):
+    import pandas as pd
+    dfs = pd.read_csv(file)
+    gpmc = dfs['名称'].to_list()
+    fbcj = dfs['成交额'].to_list()
+    zt_cj = 0
+    for i in range(len(fbcj)):
+        # print(gpmc[i],fbzj[i],fbcj[i],zt[i])
+        zt_cj += fbcj[i]
+    #将资金转为亿为单位
+    zt_cj = zt_cj / 100000000
+    print(f"炸板股票的总成交额: {zt_cj}")
+    return zt_cj
+
 if __name__ == '__main__':
     import os
     import time

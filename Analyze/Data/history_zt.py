@@ -27,6 +27,19 @@ def get_all_zt_code_real_time(date):
     print(f"实时股票数据已保存至 {file_name}")
     return stock_zt_df
 
+#获取指定日期炸板的股票
+def get_all_zb_code_real_time(date):
+    #获取当天的股票列表
+    stock_zb_df = ak.stock_zt_pool_zbgc_em(date=date)
+    print(len(stock_zb_df))
+    if not os.path.exists("./Data/daily/zb/"+date):
+        os.makedirs("./Data/daily/zb/"+date)
+    #获取当前时间,并将时间转换为年月日时分
+    now = datetime.datetime.now()
+    file_name = "./Data/daily/zb/"+date + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
+    stock_zb_df.to_csv(file_name, index=False)
+    print(f"实时股票数据已保存至 {file_name}")
+    return stock_zb_df
 
 if __name__ == '__main__':
     date_list = daily_history.get_trace_date_list( '2025-05-23','2025-05-29')

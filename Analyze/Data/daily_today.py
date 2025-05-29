@@ -76,7 +76,7 @@ if __name__ == '__main__':
         #并且排除中午11:30-13:00,不开盘时间
         now = datetime.datetime.now()
         today_format = now.strftime("%Y%m%d")
-
+        
         if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 5)) \
             or (now.hour == 11 and now.minute > 30) or (now.hour == 12 ) :
             print("当前时间不在开盘时间，休眠1分钟")
@@ -87,6 +87,7 @@ if __name__ == '__main__':
             print("开始获取数据：",now)
             get_all_real_time()
             history_zt.get_all_zt_code_real_time(today_format)
+            history_zt.get_all_zb_code_real_time(today_format)
             time.sleep(60)
             print("获取数据完毕：",now)
         else:
