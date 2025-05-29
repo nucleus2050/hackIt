@@ -29,7 +29,7 @@ def get_all_zt_code_real_time(date):
 
 
 if __name__ == '__main__':
-    date_list = daily_history.get_trace_date_list( '2025-01-01','2025-05-23')
+    date_list = daily_history.get_trace_date_list( '2025-05-23','2025-05-29')
     for date in date_list:
         DateForm = date.strftime('%Y%m%d')
         get_all_zt_code(DateForm)

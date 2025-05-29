@@ -13,7 +13,9 @@ def cal_daily_point(high,low,close):
             point += 100
         else :
             point += (c - l) * 100 / (h-l)
-        
+
+    if len(high) == 0:
+        return 0        
     return point/len(high)
 
 
@@ -39,14 +41,14 @@ if __name__ == '__main__':
     #获取Data目录下的所有csv文件
 
     import os
-    files = os.listdir("./Data/daily/"+datetime.datetime.now().strftime("%Y%m%d"))
+    files = os.listdir("./Data/daily/point/"+datetime.datetime.now().strftime("%Y%m%d"))
     files.sort()
     print(files)
     #依次计算
     points = []
     for file in files:
         # print(file)
-        point = cal_today_point("./Data/daily/"+datetime.datetime.now().strftime("%Y%m%d")+ "/" +file)
+        point = cal_today_point("./Data/daily/point/"+datetime.datetime.now().strftime("%Y%m%d")+ "/" +file)
         print(file,point)
         points.append(point)
     #画曲线图，横轴为日期，纵轴为挣钱效应，最低0，最高100,并且在横轴上标注日期
