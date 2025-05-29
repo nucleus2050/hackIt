@@ -96,14 +96,13 @@ class DetectFileHandler(FileSystemEventHandler):
         """当检测到新文件创建时调用此方法"""
         if not event.is_directory:
             print(f"检测到新文件: {event.src_path}")
-            # time.sleep(1)
-            # #如果文件时point目录下的文件，则计算当天的挣钱效应
-            # if "point" in event.src_path:
-            #     point = cal_today_point(event.src_path)
-            #     print(event.src_path,point)
-            #     if point < 30.0 and point > 0.0:
-            #         email_body = "cur point is " + str(point) + " less than 30.0"
-            #         send_email(sender_email, sender_password, receiver_email, email_subject, email_body)
+            #判读是否在9:30之前，如果是则什么也不干
+            import datetime
+            now = datetime.datetime.now()
+            if now.hour < 9 or (now.hour == 9 and now.minute < 30):
+                print("9:30之前，不计算")
+                return
+            
             if "zt" in event.src_path:
                 time.sleep(1)
                 #如果文件时zt目录下的文件，计算总成交额和封板资金
