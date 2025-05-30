@@ -67,7 +67,7 @@ email_subject_notify = "nofify"
 email_subject_alter = "alter"
 
 
-#获取上一个交易日的日期
+#获取上一个交易日的日期,以及最后一个交易日的日期
 def get_pre_trade_date(filePath):
     #获取filePath的上上级目录
     import os
@@ -78,12 +78,12 @@ def get_pre_trade_date(filePath):
     #如果files长度小于2，则返回今天的日期
     #获取path下的所有文件的日期
     if len(files) >= 2:
-        return files[-2]
+        return files[-2],files[-1]
     else:
         import datetime
         now = datetime.datetime.now()
         today_format = now.strftime("%Y%m%d")
-        return today_format
+        return today_format,today_format
 
 
 
@@ -107,14 +107,11 @@ class DetectFileHandler(FileSystemEventHandler):
                 time.sleep(1)
                 #如果文件时zt目录下的文件，计算总成交额和封板资金
                 import cal_zt_zj
-                import datetime
-                now = datetime.datetime.now()
-                today_format = now.strftime("%Y%m%d")
                 try:
                     point_path = event.src_path.replace("zt","point")
                     zb_path = event.src_path.replace("zt","zb")
 
-                    pre_date = get_pre_trade_date(event.src_path)
+                    pre_date,today_format = get_pre_trade_date(event.src_path)
                     pre_point_path = point_path.replace(today_format,pre_date)
                     pre_zb_path = zb_path.replace(today_format,pre_date)
                     pre_zt_path = event.src_path.replace(today_format,pre_date)
@@ -145,20 +142,20 @@ class DetectFileHandler(FileSystemEventHandler):
                         pre_zt_zj = 0.0
                         pre_zt_cj = 0.0
 
-                    #判断前一天的文件是否存在,存在着计算,不存在着不计算
-                    email_body = "point:" + str(point) + "\n"
-                    email_body += "fb:" + str(zt_zj) + "\n" 
-                    email_body += "cj:" +  str(zt_cj) + "\n"
-                    email_body += "fcb:" +  str(zt_zj/zt_cj) + "\n"
-                    email_body += "zb:" +  str(zb_cj) + "\n"
-                    email_body += "tocal_cj:" +str(zb_cj+zt_cj) + "\n"
-                    #加上前一天的数据
-                    email_body += "pre_point:" + str(pre_point) + "\n"
-                    email_body += "pre_fb:" + str(pre_zt_zj) + "\n"
-                    email_body += "pre_cj:" +  str(pre_zt_cj) + "\n"
-                    email_body += "pre_fcb:" +  str(pre_zt_zj/pre_zt_cj) + "\n"
-                    email_body += "pre_zb:" +  str(pre_zb_cj) + "\n"
-                    email_body += "pre_tocal_cj:" +str(pre_zb_cj+pre_zt_cj) + "\n"
+
+                    # 简单表格化邮件内容
+                    email_body = "Market Sentiment Monitor\n"
+                    email_body += "=" * 40 + "\n"
+                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<6}\n"
+                    email_body += "-" * 40 + "\n"
+                    email_body += f"{'Emotion':<15} {point:<10.2f} {pre_point:<10.2f} {'↑' if point > pre_point else '↓' if point < pre_point else '→':<6}\n"
+                    email_body += f"{'Seal Fund':<15} {zt_zj:<10.2f} {pre_zt_zj:<10.2f} {'↑' if zt_zj > pre_zt_zj else '↓' if zt_zj < pre_zt_zj else '→':<6}\n"
+                    email_body += f"{'Limit Volume':<15} {zt_cj:<10.2f} {pre_zt_cj:<10.2f} {'↑' if zt_cj > pre_zt_cj else '↓' if zt_cj < pre_zt_cj else '→':<6}\n"
+                    email_body += f"{'Seal Ratio':<15} {(zt_zj/zt_cj if zt_cj else 0):<10.2f} {(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0):<10.2f} {'↑' if (zt_zj/zt_cj if zt_cj else 0) > (pre_zt_zj/pre_zt_cj if pre_zt_cj else 0) else '↓' if (zt_zj/zt_cj if zt_cj else 0) < (pre_zt_zj/pre_zt_cj if pre_zt_cj else 0) else '→':<6}\n"
+                    email_body += f"{'Break Volume':<15} {zb_cj:<10.2f} {pre_zb_cj:<10.2f} {'↑' if zb_cj > pre_zb_cj else '↓' if zb_cj < pre_zb_cj else '→':<6}\n"
+                    email_body += f"{'Total Volume':<15} {(zb_cj+zt_cj):<10.2f} {(pre_zb_cj+pre_zt_cj):<10.2f} {'↑' if (zb_cj+zt_cj) > (pre_zb_cj+pre_zt_cj) else '↓' if (zb_cj+zt_cj) < (pre_zb_cj+pre_zt_cj) else '→':<6}\n"
+                    email_body += "=" * 40 + "\n"
+
 
                     if (point < 30.0 and point > 0.0) or (pre_zb_cj+pre_zt_cj)/(zb_cj+zt_cj) > 1.5 or (zb_cj+zt_cj)/(pre_zb_cj+pre_zt_cj) > 1.5:
                         send_email(sender_email, sender_password, receiver_email, email_subject_alter, email_body)
