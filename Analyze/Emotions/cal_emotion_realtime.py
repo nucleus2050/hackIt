@@ -6,6 +6,7 @@ from watchdog.events import FileSystemEventHandler
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import cal_zs_emotion
 
 def cal_daily_point(high,low,close):
     #遍历每一个股票
@@ -142,6 +143,12 @@ class DetectFileHandler(FileSystemEventHandler):
                         pre_zt_zj = 0.0
                         pre_zt_cj = 0.0
 
+                    #计算指数情绪
+                    zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",point_path)
+                    pre_sz_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",pre_point_path)
+
+                    print("zs_emotion:",zs_emotion)
+                    print("pre_sz_emotion:",pre_sz_emotion)
 
                     # 简单表格化邮件内容
                     email_body = "Market Sentiment Monitor\n"
@@ -155,6 +162,16 @@ class DetectFileHandler(FileSystemEventHandler):
                     email_body += f"{'Break Volume':<15} {zb_cj:<10.2f} {pre_zb_cj:<10.2f} {'↑' if zb_cj > pre_zb_cj else '↓' if zb_cj < pre_zb_cj else '→':<6}\n"
                     email_body += f"{'Total Volume':<15} {(zb_cj+zt_cj):<10.2f} {(pre_zb_cj+pre_zt_cj):<10.2f} {'↑' if (zb_cj+zt_cj) > (pre_zb_cj+pre_zt_cj) else '↓' if (zb_cj+zt_cj) < (pre_zb_cj+pre_zt_cj) else '→':<6}\n"
                     email_body += "=" * 40 + "\n"
+                    # email_body += str(zs_emotion) + "\n"
+                    # email_body += str(pre_sz_emotion) + "\n"
+                    #zs_emotion和pre_sz_emotion均为字典类型,将其转换为表格
+                    email_body += "\nIndex Monitor\n"
+                    email_body += "=" * 40 + "\n"
+                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<6}\n"
+                    email_body += "-" * 40 + "\n"
+                    for key in zs_emotion.keys():
+                        email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {'↑' if zs_emotion[key] > pre_sz_emotion[key] else '↓' if zs_emotion[key] < pre_sz_emotion[key] else '→':<6}\n"
+                    email_body += "=" * 40 + "\n"
 
 
                     if (point < 30.0 and point > 0.0) or (pre_zb_cj+pre_zt_cj)/(zb_cj+zt_cj) > 1.5 or (zb_cj+zt_cj)/(pre_zb_cj+pre_zt_cj) > 1.5:
@@ -163,6 +180,10 @@ class DetectFileHandler(FileSystemEventHandler):
                         send_email(sender_email, sender_password, receiver_email, email_subject_notify, email_body)
                 except Exception as e:
                     print("cal_zt_zj error",e)
+                    #打印出堆栈信息
+                    import traceback
+                    traceback.print_exc()
+                    
                 
 
 def monitor_directory(path):

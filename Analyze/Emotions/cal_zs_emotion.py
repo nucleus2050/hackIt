@@ -8,50 +8,33 @@ from datetime import datetime
 
 
 # 计算指数成分股的情绪指标
-def cal_zs_emotion(zhs_code, zhs_name):
+def cal_zs_emotion(zscfPath,filePath):
     # 获取指数成分股
-    zs_cf = get_zs_cf(zhs_code)
-    # 提取成分股代码列表
-    stock_codes = zs_cf['成分券代码'].tolist()
-    
-    # 获取最新的历史数据文件
-    history_files = os.listdir("./Data/history")
-    history_files.sort()
-    latest_file = history_files[-1] if history_files else None
-    print(latest_file)
-    if not latest_file:
-        print(f"未找到历史数据文件")
-        return None
-    
-    # 读取历史数据
-    df = pd.read_csv(f"./Data/history/{latest_file}", dtype={'股票代码': str})
-    
-    # 筛选出指数成分股的数据
-    df_zs = df[df['股票代码'].isin(stock_codes)]
-    
-    # 计算指数成分股的挣钱效应
-    high = df_zs['最高'].tolist()
-    low = df_zs['最低'].tolist()
-    close = df_zs['收盘'].tolist()
-    
-    if len(high) == 0:
-        print(f"{zhs_name}({zhs_code})没有找到成分股数据")
-        return None
-    
-    # 计算挣钱效应
-    point = 0
-    for i in range(len(high)):
-        h = float(high[i])
-        l = float(low[i])
-        c = float(close[i])
-        if h == l and c == l:
-            point += 100
-        else:
-            point += (c - l) * 100 / (h-l)
-    
-    emotion_point = point / len(high)
-    print(f"{zhs_name}({zhs_code})的情绪指标: {emotion_point:.2f}")
-    return emotion_point
+    index_list = [
+        {'code': '000016', 'name': 'SSE 50'},
+        {'code': '000300', 'name': 'CSI 300'},
+        {'code': '000905', 'name': 'CSI 500'},
+        {'code': '000852', 'name': 'CSI 1000'},
+        {'code': '000688', 'name': 'STAR 50'}
+    ]
+    emotion_results = {}
+    # 计算各指数的情绪指标
+    for index in index_list:
+        #读取存储指数成分股的csv文件
+        df = pd.read_csv(zscfPath + '/' + index['code'] + '.csv')
+        stock_codes = df['成分券代码'].tolist()
+        # print(stock_codes)
+        #读取当前行数文件
+        df5min = pd.read_csv(filePath)
+        df_zs = df5min[df5min['代码'].isin(stock_codes)]
+        # print(df_zs)
+        high = df_zs['最高'].tolist()
+        low = df_zs['最低'].tolist()
+        close = df_zs['最新价'].tolist()
+        import cal_history_point
+        point = cal_history_point.cal_daily_point(high,low,close)
+        emotion_results[index['name']] = point
+    return emotion_results
 
 if __name__ == '__main__':
     # 定义要分析的指数代码和名称
@@ -62,16 +45,17 @@ if __name__ == '__main__':
         {'code': '000852', 'name': '中证1000'},
         {'code': '000688', 'name': '科创50'}
     ]
-    test = get_zs_cf('399006')
-    print(test)
+    # test = get_zs_cf('399006')
+    # print(test)
     # 存储各指数的情绪指标
-    # emotion_results = {}
+    emotion_results = {}
     
-    # # 计算各指数的情绪指标
-    # for index in index_list:
-    #     emotion_point = cal_zs_emotion(index['code'], index['name'])
-    #     if emotion_point is not None:
-    #         emotion_results[index['name']] = emotion_point
+    # 计算各指数的情绪指标
+    for index in index_list:
+        emotion_point = cal_zs_emotion("./Data/zs", "./Data/daily/point/20250530/202505301500.csv")
+        if emotion_point is not None:
+            emotion_results[index['name']] = emotion_point
+    print(emotion_results)
     
     # # 绘制柱状图展示各指数的情绪指标
     # if emotion_results:
