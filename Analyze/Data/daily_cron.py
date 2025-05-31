@@ -1,7 +1,143 @@
 import akshare as ak
-import time
-import json
 import pandas as pd
+import datetime
+import time
+
+# 获取指定指数成分股
+def get_zs_cf(zhs_code):
+    try:
+        # 尝试直接获取数据
+        index_stock_info_df = ak.index_stock_cons_csindex(zhs_code)
+        
+        # 检查返回的是否为DataFrame
+        if isinstance(index_stock_info_df, pd.DataFrame):
+            return index_stock_info_df
+        
+        # 如果返回的是二进制数据或其他格式，尝试使用BytesIO处理
+        from io import BytesIO
+        import warnings
+        warnings.filterwarnings('ignore')
+        
+        # 尝试使用不同的引擎读取Excel
+        try:
+            # 首先尝试openpyxl引擎
+            df = pd.read_excel(BytesIO(index_stock_info_df), engine='openpyxl')
+        except Exception as e:
+            print(f"尝试使用openpyxl引擎失败: {e}")
+            try:
+                # 然后尝试xlrd引擎
+                df = pd.read_excel(BytesIO(index_stock_info_df), engine='xlrd')
+            except Exception as e:
+                print(f"尝试使用xlrd引擎失败: {e}")
+                raise ValueError(f"无法读取指数{zhs_code}的成分股数据")
+        
+        return df
+    except Exception as e:
+        print(f"获取指数{zhs_code}成分股时出错: {e}")
+        return pd.DataFrame()  # 返回空DataFrame而不是None，便于后续处理
+
+
+def get_zscf_every_week():
+    import akshare as ak
+    import pandas as pd
+    import datetime
+    import time
+    import os
+    #获取指数成分股
+    index_list = [
+        {'code': '000016', 'name': '上证50'},
+        {'code': '000300', 'name': '沪深300'},
+        {'code': '000905', 'name': '中证500'},
+        {'code': '000852', 'name': '中证1000'},
+        {'code': '000688', 'name': '科创50'},
+        {'code':'399673','name':'国证2000'},
+    ]
+    for index in index_list:
+        try:
+            zs_cf = get_zs_cf(index['code'])
+            # 提取成分股代码列表
+            stock_codes = zs_cf['成分券代码'].tolist()
+            #获取指数code
+            zhs_code = index['code']
+            #将指数成分代码保存到csv文件中,文件名为code.csv,仅保持指数成分代码
+            #保存到./Data/zs/目录下
+            #如果目录不存在，则创建目录
+            if not os.path.exists('./Data/zs'):
+                os.makedirs('./Data/zs')
+            #保存到./Data/zs/目录下
+            zs_cf.to_csv('./Data/zs/'+zhs_code+'.csv',index=False)
+        except Exception as e:
+            print(f"获取指数{index['code']}成分股时出错: {e}")
+            continue
+
+
+def get_all_stock_code():
+    # 获取所有股票的代码
+    try:
+        stock_df = ak.stock_zh_a_spot_em()
+        # 1. 过滤掉总市值为0的股票
+        # stock_df = stock_df[stock_df["总市值"] != 0.0]
+        
+        # # 2. 过滤掉名称中包含"退"的股票（退市股票）
+        # stock_df = stock_df[~stock_df["名称"].str.contains("退", na=False)]
+        
+        # # 3. 过滤掉名称中包含"PT"的股票（特别处理的股票，通常是停牌或问题股票）
+        # stock_df = stock_df[~stock_df["名称"].str.contains("PT", na=False)]
+        
+        # # 4. 过滤掉成交量为0的股票（可能是停牌股票）
+        # if "成交量" in stock_df.columns:
+        #     stock_df = stock_df[stock_df["成交量"] > 0]
+        
+        # # 5. 过滤掉最新价为0或NaN的股票
+        # if "最新价" in stock_df.columns:
+        #     stock_df = stock_df[stock_df["最新价"] > 0]
+
+        # 保存股票代码和名称的映射关系,名称转为utf-8编码
+        names = []
+        for name in stock_df["名称"].tolist():
+            # 如果名称是GBK编码，先解码为Unicode，再编码为UTF-8
+            try:
+                if isinstance(name, str):
+                    # 确保名称是UTF-8编码
+                    name_utf8 = name.encode('utf-8').decode('utf-8')
+                    # print(name_utf8)
+                    names.append(name_utf8)
+                else:
+                    names.append(name)
+            except Exception as e:
+                print(f"转换名称编码失败: {name}, 错误: {e}")
+                names.append(name)  # 保留原始名称
+                
+        stock_code_name_map = dict(zip(stock_df["代码"].tolist(), names))
+        print(f"成功获取到 {len(stock_code_name_map)} 只股票代码和名称")
+        return stock_code_name_map
+    except Exception as e:
+        print(f"获取股票列表失败: {e}")
+        try:
+            stock_df = ak.stock_zh_a_spot()
+            #从新浪获取的股票代理要去掉"sh"和"sz"前缀
+            stock_df["代码"] = stock_df["代码"].str.replace("sh", "").str.replace("sz", "").str.replace("bj", "")
+  
+            stock_code_name_map = dict(zip(stock_df["代码"].tolist(), stock_df["名称"].tolist()))
+            print(f"使用备选API成功获取到 {len(stock_code_name_map)} 只股票代码和名称")
+            return stock_code_name_map
+        except Exception as e:
+            print(f"所有获取股票列表的方法都失败: {e}")
+            return {}
+
+
+#获取当前所有股票代码以及名称,并保存到csv文件中
+def get_all_stock_code_name():
+    stock_code_name_map = get_all_stock_code()
+    if not stock_code_name_map:
+        print("无法获取股票代码和名称列表，程序退出")
+        return
+    df = pd.DataFrame.from_dict(stock_code_name_map, orient='index', columns=['股票名称'])
+    df.index.name = '股票代码'  # 设置索引名称
+    df.to_csv("./Data/public/stock.csv", encoding="utf_8_sig")
+
+
+
 #获取所有股票代码
 #返回值：
 #包含所有股票代码的列表
@@ -290,7 +426,7 @@ def get_trace_date_list(start,end):
     return date_list
 
 
-if __name__ == '__main__':
+def get_daily_stock_data():
     import akshare as ak
     from datetime import datetime
     import datetime
@@ -298,22 +434,51 @@ if __name__ == '__main__':
     trade_date_list = ak.tool_trade_date_hist_sina()
     trade_date_list = trade_date_list['trade_date'].tolist()
     import history_zt
-    while True:
-        now = datetime.datetime.now()
-        now_date = now.date()
-        if now_date in trade_date_list:
-            if now.hour == 15 and now.minute == 1:
-                #获取数据
-                get_data_by_date_range(str(now_date),str(now_date))
-                data_str_today  = str.replace(str(now_date),'-','')
-                history_zt.get_all_zt_code()
-            else:
-                print("当前还没收盘，等待1分钟")
-                time.sleep(60)
+    now = datetime.datetime.now()
+    now_date = now.date()
+    if now_date in trade_date_list:
+        #获取数据
+        get_data_by_date_range(str(now_date),str(now_date))
+        data_str_today  = str.replace(str(now_date),'-','')
+        history_zt.get_all_zt_code()
 
-'''
+
+# if __name__ == '__main__':
+#     import akshare as ak
+#     from datetime import datetime
+#     import datetime
+#     import time
+#     trade_date_list = ak.tool_trade_date_hist_sina()
+#     trade_date_list = trade_date_list['trade_date'].tolist()
+#     import history_zt
+#     while True:
+#         now = datetime.datetime.now()
+#         now_date = now.date()
+#         if now_date in trade_date_list:
+#             if now.hour == 15 and now.minute == 1:
+#                 #获取数据
+#                 get_data_by_date_range(str(now_date),str(now_date))
+#                 data_str_today  = str.replace(str(now_date),'-','')
+#                 history_zt.get_all_zt_code()
+#             else:
+#                 print("当前还没收盘，等待1分钟")
+#                 time.sleep(60)
+
 if __name__ == '__main__':
-    date_list = get_trace_date_list( '2025-05-12','2025-05-16')
-    for date in date_list:
-        get_data_by_date_range(str(date),str(date))
-'''
+    #启动定时任务,使用schedule库,为每种任务设定不同的运行周期
+    import schedule
+    import time
+  
+    #每周六九点运行获取指数成分股
+    schedule.every().saturday.at("09:00").do(get_zscf_every_week)
+    #每周日十点运行获取所有股票代码和名称
+    schedule.every().sunday.at("10:00").do(get_all_stock_code_name)
+    #每天15:05获取收盘数据
+    schedule.every().day.at("15:05").do(get_daily_stock_data)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+

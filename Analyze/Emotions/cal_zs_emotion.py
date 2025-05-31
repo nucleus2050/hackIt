@@ -5,38 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 
-# 获取指定指数成分股
-def get_zs_cf(zhs_code='399006'):
-    try:
-        # 尝试直接获取数据
-        index_stock_info_df = ak.index_stock_cons_csindex(zhs_code)
-        
-        # 检查返回的是否为DataFrame
-        if isinstance(index_stock_info_df, pd.DataFrame):
-            return index_stock_info_df
-        
-        # 如果返回的是二进制数据或其他格式，尝试使用BytesIO处理
-        from io import BytesIO
-        import warnings
-        warnings.filterwarnings('ignore')
-        
-        # 尝试使用不同的引擎读取Excel
-        try:
-            # 首先尝试openpyxl引擎
-            df = pd.read_excel(BytesIO(index_stock_info_df), engine='openpyxl')
-        except Exception as e:
-            print(f"尝试使用openpyxl引擎失败: {e}")
-            try:
-                # 然后尝试xlrd引擎
-                df = pd.read_excel(BytesIO(index_stock_info_df), engine='xlrd')
-            except Exception as e:
-                print(f"尝试使用xlrd引擎失败: {e}")
-                raise ValueError(f"无法读取指数{zhs_code}的成分股数据")
-        
-        return df
-    except Exception as e:
-        print(f"获取指数{zhs_code}成分股时出错: {e}")
-        return pd.DataFrame()  # 返回空DataFrame而不是None，便于后续处理
+
 
 # 计算指数成分股的情绪指标
 def cal_zs_emotion(zhs_code, zhs_name):
@@ -91,9 +60,6 @@ if __name__ == '__main__':
         {'code': '000300', 'name': '沪深300'},
         {'code': '000905', 'name': '中证500'},
         {'code': '000852', 'name': '中证1000'},
-
-        {'code': '399006', 'name': '创业板指'},
-        # {'code': '399005', 'name': '中小板指'},
         {'code': '000688', 'name': '科创50'}
     ]
     test = get_zs_cf('399006')
