@@ -91,67 +91,34 @@ def cal_zb_zj_simple(file):
     print(f"炸板股票的总成交额: {zt_cj}")
     return zt_cj
 
-if __name__ == '__main__':
+#计算某一天中涨停的股票的总资金，以及成交额
+def cal_zt_zj(filePath):
     import os
-    import time
-    files = os.listdir("./Data/zt")
+    #列出目录下的所有文件
+    files = os.listdir(filePath)
     files.sort()
     print(files)
     fb_zj = []
     fb_cj = []
-    fb_fcb = []
     for file in files:
-        zt_zj,zt_cj = cal_zt_zj_simple("./Data/zt/"+file)
-        fb_zj.append(zt_zj)
-        fb_cj.append(zt_cj)
-        fb_fcb.append(zt_zj/zt_cj)
+        cur_path = filePath+"/"+file
+        print(cur_path)
+        try:
+            zt_zj,zt_cj = cal_zt_zj_simple(cur_path)
+            fb_zj.append(zt_zj)
+            fb_cj.append(zt_cj)
+        except Exception as e:
+            print(f"读取文件{cur_path}失败: {e}")
+            continue
+    
+    return fb_zj,fb_cj
 
-    #画图,分割成两个图，涨停资金以及涨停成交额在一个图中，涨停资金/涨停成交额在一个图中
-    import matplotlib.pyplot as plt
-    import numpy as np
-    #设置中文字体
-    plt.rcParams['font.sans-serif'] = ['SimHei']
-    plt.rcParams['axes.unicode_minus'] = False
-    #设置画布大小
-    plt.figure(figsize=(10,10))
-    #设置子图
-    plt.subplot(2,1,1)
-    #设置标题
-    plt.title("涨停资金/涨停成交额")
-    #设置x轴标签
-    plt.xlabel("日期")
-    #设置y轴标签
-    plt.ylabel("资金/成交额")
-    #设置x轴刻度
-    plt.xticks(np.arange(0,len(files),1),files)
-    #设置y轴刻度
-    plt.yticks(np.arange(0,max(fb_fcb),0.01))
-    #设置网格
-    plt.grid(True)
-    #设置线条颜色
-    plt.plot(fb_fcb,color='red')
-    #设置子图
-    plt.subplot(2,1,2)
-    #设置标题
-    plt.title("涨停资金/涨停成交额")
-    #设置x轴标签
-    plt.xlabel("日期")
-    #设置y轴标签
-    plt.ylabel("资金/成交额")
-    #设置x轴刻度
-    plt.xticks(np.arange(0,len(files),1),files)
-    #设置y轴刻度
-    # plt.yticks(np.arange(0,max(fb_fcb),0.01))
 
-    #设置网格
-    plt.grid(True)
-    #设置线条颜色
-    plt.plot(fb_zj,color='red')
-    plt.plot(fb_cj,color='blue')
-    #保存图片
-    # plt.savefig("./Data/zt/zt_fb_fcb.png")
-    #显示图片
-    plt.show()
+
+if __name__ == '__main__':
+    test,tset1 = cal_zt_zj("./Data/daily/zt/20250530")
+    print(test)
+    print(tset1)    
 
 
 
