@@ -267,6 +267,7 @@ def get_all_daily(stock_code_name_map, begin_date, end_date):
                 # time.sleep(1)
         except Exception as e:
             print(f"获取 {stock_code} 数据失败: {e}")
+            time.sleep(1)
             continue
 
     # 保存数据到文件
