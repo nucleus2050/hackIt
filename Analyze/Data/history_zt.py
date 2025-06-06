@@ -1,5 +1,4 @@
 import akshare as ak
-import daily_history
 import os
 import datetime
 
