@@ -77,13 +77,13 @@ if __name__ == '__main__':
         now = datetime.datetime.now()
         today_format = now.strftime("%Y%m%d")
         
-        if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 5)) \
+        if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 10)) \
             or (now.hour == 11 and now.minute > 30) or (now.hour == 12 ) :
             print("当前时间不在开盘时间，休眠1分钟")
             import time
             time.sleep(60)
             continue
-        if now.minute % 5 == 0:
+        if now.minute % 10 == 0:
             print("开始获取数据：",now)
             get_all_real_time()
             history_zt.get_all_zt_code_real_time(today_format)
