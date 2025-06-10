@@ -149,7 +149,7 @@ class DetectFileHandler(FileSystemEventHandler):
                     if os.path.exists(pre_point_path):
                         pre_sz_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",pre_point_path)
                     else:
-                        pre_sz_emotion = {'SSE 50': 0.0, 'CSI 300': 0.0, 'CSI 500': 0.0, 'CSI 1000': 0.0, 'STAR 50': 0.0}
+                        pre_sz_emotion = {'SSE 50': 30.0, 'CSI 300': 30.0, 'CSI 500': 30.0, 'CSI 1000': 30.0, 'STAR 50': 30.0}
 
                     print("zs_emotion:",zs_emotion)
                     print("pre_sz_emotion:",pre_sz_emotion)
