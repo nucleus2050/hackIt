@@ -178,7 +178,7 @@ class DetectFileHandler(FileSystemEventHandler):
                     email_body += "=" * 40 + "\n"
 
 
-                    if (point < 30.0 and point > 0.0) or (pre_zb_cj+pre_zt_cj)/(zb_cj+zt_cj) > 1.5 or (zb_cj+zt_cj)/(pre_zb_cj+pre_zt_cj) > 1.5:
+                    if point < 30.0 and point > 0.0:
                         send_email(sender_email, sender_password, receiver_email, email_subject_alter, email_body)
                     else:
                         send_email(sender_email, sender_password, receiver_email, email_subject_notify, email_body)
