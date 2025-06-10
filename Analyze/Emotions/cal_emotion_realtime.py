@@ -145,7 +145,11 @@ class DetectFileHandler(FileSystemEventHandler):
 
                     #计算指数情绪
                     zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",point_path)
-                    pre_sz_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",pre_point_path)
+
+                    if os.path.exists(pre_point_path):
+                        pre_sz_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",pre_point_path)
+                    else:
+                        pre_sz_emotion = {}
 
                     print("zs_emotion:",zs_emotion)
                     print("pre_sz_emotion:",pre_sz_emotion)
