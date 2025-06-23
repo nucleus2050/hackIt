@@ -1,4 +1,3 @@
-
 import time
 import os
 from watchdog.observers import Observer
@@ -157,24 +156,24 @@ class DetectFileHandler(FileSystemEventHandler):
                     # 简单表格化邮件内容
                     email_body = "Market Sentiment Monitor\n"
                     email_body += "=" * 40 + "\n"
-                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<6}\n"
+                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
                     email_body += "-" * 40 + "\n"
-                    email_body += f"{'Emotion':<15} {point:<10.2f} {pre_point:<10.2f} {'↑' if point > pre_point else '↓' if point < pre_point else '→':<6}\n"
-                    email_body += f"{'Seal Fund':<15} {zt_zj:<10.2f} {pre_zt_zj:<10.2f} {'↑' if zt_zj > pre_zt_zj else '↓' if zt_zj < pre_zt_zj else '→':<6}\n"
-                    email_body += f"{'Limit Volume':<15} {zt_cj:<10.2f} {pre_zt_cj:<10.2f} {'↑' if zt_cj > pre_zt_cj else '↓' if zt_cj < pre_zt_cj else '→':<6}\n"
-                    email_body += f"{'Seal Ratio':<15} {(zt_zj/zt_cj if zt_cj else 0):<10.2f} {(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0):<10.2f} {'↑' if (zt_zj/zt_cj if zt_cj else 0) > (pre_zt_zj/pre_zt_cj if pre_zt_cj else 0) else '↓' if (zt_zj/zt_cj if zt_cj else 0) < (pre_zt_zj/pre_zt_cj if pre_zt_cj else 0) else '→':<6}\n"
-                    email_body += f"{'Break Volume':<15} {zb_cj:<10.2f} {pre_zb_cj:<10.2f} {'↑' if zb_cj > pre_zb_cj else '↓' if zb_cj < pre_zb_cj else '→':<6}\n"
-                    email_body += f"{'Total Volume':<15} {(zb_cj+zt_cj):<10.2f} {(pre_zb_cj+pre_zt_cj):<10.2f} {'↑' if (zb_cj+zt_cj) > (pre_zb_cj+pre_zt_cj) else '↓' if (zb_cj+zt_cj) < (pre_zb_cj+pre_zt_cj) else '→':<6}\n"
+                    email_body += f"{'Emotion':<15} {point:<10.2f} {pre_point:<10.2f} {((point-pre_point)/pre_point*100 if pre_point else 0):<.2f}%\n"
+                    email_body += f"{'Seal Fund':<15} {zt_zj:<10.2f} {pre_zt_zj:<10.2f} {((zt_zj-pre_zt_zj)/pre_zt_zj*100 if pre_zt_zj else 0):<.2f}%\n"
+                    email_body += f"{'Limit Volume':<15} {zt_cj:<10.2f} {pre_zt_cj:<10.2f} {((zt_cj-pre_zt_cj)/pre_zt_cj*100 if pre_zt_cj else 0):<.2f}%\n"
+                    email_body += f"{'Seal Ratio':<15} {(zt_zj/zt_cj if zt_cj else 0):<10.2f} {(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0):<10.2f} {(((zt_zj/zt_cj if zt_cj else 0)-(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0))/(pre_zt_zj/pre_zt_cj if pre_zt_cj else 1)*100 if pre_zt_cj else 0):<.2f}%\n"
+                    email_body += f"{'Break Volume':<15} {zb_cj:<10.2f} {pre_zb_cj:<10.2f} {((zb_cj-pre_zb_cj)/pre_zb_cj*100 if pre_zb_cj else 0):<.2f}%\n"
+                    email_body += f"{'Total Volume':<15} {(zb_cj+zt_cj):<10.2f} {(pre_zb_cj+pre_zt_cj):<10.2f} {(((zb_cj+zt_cj)-(pre_zb_cj+pre_zt_cj))/(pre_zb_cj+pre_zt_cj)*100 if (pre_zb_cj+pre_zt_cj) else 0):<.2f}%\n"
                     email_body += "=" * 40 + "\n"
                     # email_body += str(zs_emotion) + "\n"
                     # email_body += str(pre_sz_emotion) + "\n"
                     #zs_emotion和pre_sz_emotion均为字典类型,将其转换为表格
                     email_body += "\nIndex Monitor\n"
                     email_body += "=" * 40 + "\n"
-                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<6}\n"
+                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
                     email_body += "-" * 40 + "\n"
                     for key in zs_emotion.keys():
-                        email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {'↑' if zs_emotion[key] > pre_sz_emotion[key] else '↓' if zs_emotion[key] < pre_sz_emotion[key] else '→':<6}\n"
+                        email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {((zs_emotion[key]-pre_sz_emotion[key])/pre_sz_emotion[key]*100 if pre_sz_emotion[key] else 0):<.2f}%\n"
                     email_body += "=" * 40 + "\n"
 
 
