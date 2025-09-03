@@ -77,24 +77,41 @@ if __name__ == '__main__':
         now = datetime.datetime.now()
         today_format = now.strftime("%Y%m%d")
         
-        if (now.hour < 9 or (now.hour == 9 and now.minute < 15)) or (now.hour > 15 or (now.hour == 15 and now.minute > 10)) \
+        if (now.hour < 9 or (now.hour == 9 and now.minute < 30)) or (now.hour > 15 or (now.hour == 15 and now.minute > 10)) \
             or (now.hour == 11 and now.minute > 30) or (now.hour == 12 ) :
             print("当前时间不在开盘时间，休眠1分钟")
             import time
             time.sleep(60)
             continue
-        if now.minute % 10 == 0:
-            print("开始获取数据：",now)
-            get_all_real_time()
-            history_zt.get_all_zt_code_real_time(today_format)
-            history_zt.get_all_zb_code_real_time(today_format)
-            time.sleep(60)
-            print("获取数据完毕：",now)
-        else:
-            print("当前时间不在5分钟的倍数，休眠1分钟")
-            import time
-            time.sleep(3)
-            continue
+        
+        # 9:30-10:00 每5分钟获取一次数据
+        if (now.hour == 9 and now.minute >= 30) or (now.hour == 10 and now.minute == 0):
+            if now.minute % 5 == 0:
+                print("开始获取数据（5分钟间隔）：", now)
+                get_all_real_time()
+                history_zt.get_all_zt_code_real_time(today_format)
+                history_zt.get_all_zb_code_real_time(today_format)
+                time.sleep(60)
+                print("获取数据完毕：", now)
+            else:
+                print("当前时间不在5分钟的倍数，休眠1分钟")
+                import time
+                time.sleep(60)
+                continue
+        # 10:00后每10分钟获取一次数据
+        elif now.hour >= 10:
+            if now.minute % 10 == 0:
+                print("开始获取数据（10分钟间隔）：", now)
+                get_all_real_time()
+                history_zt.get_all_zt_code_real_time(today_format)
+                history_zt.get_all_zb_code_real_time(today_format)
+                time.sleep(60)
+                print("获取数据完毕：", now)
+            else:
+                print("当前时间不在10分钟的倍数，休眠1分钟")
+                import time
+                time.sleep(60)
+                continue
 
 
         
