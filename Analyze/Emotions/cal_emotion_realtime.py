@@ -175,6 +175,9 @@ def  get_pre_5min_10min_point_path(point_path):
         prev_time_10min_str = prev_time_10min.strftime("%Y%m%d%H%M")
         prev_point_10min_path = point_path.replace(point_path, prev_time_10min_str)
         
+        print("prev_point_5min_path",prev_point_5min_path)
+        print("prev_point_10min_path",prev_point_10min_path)
+        
         # 判断文件是否存在
         if os.path.exists(prev_point_5min_path):
             print(f"找到前一个时间点文件: {prev_point_5min_path}")
