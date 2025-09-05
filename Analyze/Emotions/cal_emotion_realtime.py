@@ -149,6 +149,8 @@ def  get_pre_5min_10min_point_path(point_path):
         
         # 从文件路径中提取时间信息
         file_name = os.path.basename(point_path)
+        #提取路径部分
+        filepath = os.path.dirname(point_path)
         # 提取时间部分 (例如: 202505151010)
         time_str = file_name.replace('.csv', '')
         if len(time_str) != 12:  # 确保时间格式正确
@@ -170,14 +172,14 @@ def  get_pre_5min_10min_point_path(point_path):
         
         # 生成前一个时间点的文件名
         prev_time_5min_str = prev_time_5min.strftime("%Y%m%d%H%M")
-        prev_point_5min_path = point_path.replace(point_path, prev_time_5min_str)
+        prev_point_5min_path = filepath + "/" + point_path.replace(point_path, prev_time_5min_str) + ".csv"
 
         prev_time_10min_str = prev_time_10min.strftime("%Y%m%d%H%M")
-        prev_point_10min_path = point_path.replace(point_path, prev_time_10min_str)
+        prev_point_10min_path = filepath + "/" + point_path.replace(point_path, prev_time_10min_str) + ".csv"
         
         print("prev_point_5min_path",prev_point_5min_path)
         print("prev_point_10min_path",prev_point_10min_path)
-        
+
         # 判断文件是否存在
         if os.path.exists(prev_point_5min_path):
             print(f"找到前一个时间点文件: {prev_point_5min_path}")
