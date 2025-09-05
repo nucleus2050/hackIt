@@ -118,7 +118,7 @@ class DetectFileHandler(FileSystemEventHandler):
                         return
 
                     # 获取突然放量的股票
-                    stocks = get_suddenly_volume_stock()
+                    stocks = get_suddenly_volume_stock(event.src_path)
                     print(stocks)
 
 
