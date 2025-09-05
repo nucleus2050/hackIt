@@ -6,6 +6,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import cal_zs_emotion
+import cal_zt_zj
+import os
+import pandas as pd
 
 def cal_daily_point(high,low,close):
     #遍历每一个股票
@@ -106,75 +109,17 @@ class DetectFileHandler(FileSystemEventHandler):
             if "zt" in event.src_path:
                 time.sleep(1)
                 #如果文件时zt目录下的文件，计算总成交额和封板资金
-                import cal_zt_zj
                 try:
-                    point_path = event.src_path.replace("zt","point")
-                    zb_path = event.src_path.replace("zt","zb")
-
-                    pre_date,today_format = get_pre_trade_date(event.src_path)
-                    pre_point_path = point_path.replace(today_format,pre_date)
-                    pre_zb_path = zb_path.replace(today_format,pre_date)
-                    pre_zt_path = event.src_path.replace(today_format,pre_date)
+                    # 处理市场数据并生成邮件内容
+                    email_body,point = process_market_data_and_generate_email(event.src_path)
                     
-                    print("pre_date:",pre_date)
-                    print("pre_point_path:",pre_point_path)
-                    print("pre_zb_path:",pre_zb_path)
-                    print("event.src_path:",event.src_path)
+                    if email_body is None:
+                        print("邮件内容生成失败")
+                        return
 
-                    zt_zj,zt_cj = cal_zt_zj.cal_zt_zj_simple(event.src_path)
-                    point = cal_today_point(point_path)
-                    zb_cj = cal_zt_zj.cal_zb_zj_simple(zb_path)
-
-                    #判断前一天的文件是否存在,存在着计算,不存在着不计算
-                    if os.path.exists(pre_point_path) :
-                        pre_point = cal_today_point(pre_point_path)
-                    else:
-                        pre_point = 0.0
-                    
-                    if os.path.exists(pre_zb_path) :
-                        pre_zb_cj = cal_zt_zj.cal_zb_zj_simple(pre_zb_path)
-                    else:
-                        pre_zb_cj = 0.0
-
-                    if os.path.exists(pre_zt_path) :
-                        pre_zt_zj,pre_zt_cj = cal_zt_zj.cal_zt_zj_simple(pre_zt_path)
-                    else:
-                        pre_zt_zj = 0.0
-                        pre_zt_cj = 0.0
-
-                    #计算指数情绪
-                    zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",point_path)
-
-                    if os.path.exists(pre_point_path):
-                        pre_sz_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs",pre_point_path)
-                    else:
-                        pre_sz_emotion = {'SSE 50': 30.0, 'CSI 300': 30.0, 'CSI 500': 30.0, 'CSI 1000': 30.0, 'STAR 50': 30.0}
-
-                    print("zs_emotion:",zs_emotion)
-                    print("pre_sz_emotion:",pre_sz_emotion)
-
-                    # 简单表格化邮件内容
-                    email_body = "Market Sentiment Monitor\n"
-                    email_body += "=" * 40 + "\n"
-                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
-                    email_body += "-" * 40 + "\n"
-                    email_body += f"{'Emotion':<15} {point:<10.2f} {pre_point:<10.2f} {'↑' if point > pre_point else '↓' if point < pre_point else '→':<6}\n"
-                    email_body += f"{'Seal Fund':<15} {zt_zj:<10.2f} {pre_zt_zj:<10.2f} {((zt_zj-pre_zt_zj)/pre_zt_zj*100 if pre_zt_zj else 0):<.2f}%\n"
-                    email_body += f"{'Limit Volume':<15} {zt_cj:<10.2f} {pre_zt_cj:<10.2f} {((zt_cj-pre_zt_cj)/pre_zt_cj*100 if pre_zt_cj else 0):<.2f}%\n"
-                    email_body += f"{'Seal Ratio':<15} {(zt_zj/zt_cj if zt_cj else 0):<10.2f} {(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0):<10.2f} {(((zt_zj/zt_cj if zt_cj else 0)-(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0))/(pre_zt_zj/pre_zt_cj if pre_zt_cj else 1)*100 if pre_zt_cj else 0):<.2f}%\n"
-                    email_body += f"{'Break Volume':<15} {zb_cj:<10.2f} {pre_zb_cj:<10.2f} {((zb_cj-pre_zb_cj)/pre_zb_cj*100 if pre_zb_cj else 0):<.2f}%\n"
-                    email_body += f"{'Total Volume':<15} {(zb_cj+zt_cj):<10.2f} {(pre_zb_cj+pre_zt_cj):<10.2f} {(((zb_cj+zt_cj)-(pre_zb_cj+pre_zt_cj))/(pre_zb_cj+pre_zt_cj)*100 if (pre_zb_cj+pre_zt_cj) else 0):<.2f}%\n"
-                    email_body += "=" * 40 + "\n"
-                    # email_body += str(zs_emotion) + "\n"
-                    # email_body += str(pre_sz_emotion) + "\n"
-                    #zs_emotion和pre_sz_emotion均为字典类型,将其转换为表格
-                    email_body += "\nIndex Monitor\n"
-                    email_body += "=" * 40 + "\n"
-                    email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
-                    email_body += "-" * 40 + "\n"
-                    for key in zs_emotion.keys():
-                        email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {'↑' if zs_emotion[key] > pre_sz_emotion[key] else '↓' if zs_emotion[key] < pre_sz_emotion[key] else '→':<6}\n"
-                    email_body += "=" * 40 + "\n"
+                    # 获取突然放量的股票
+                    stocks = get_suddenly_volume_stock()
+                    print(stocks)
 
 
                     if point < 30.0 and point > 0.0:
@@ -187,7 +132,201 @@ class DetectFileHandler(FileSystemEventHandler):
                     import traceback
                     traceback.print_exc()
                     
-                
+
+def  get_pre_5min_10min_point_path(point_path):
+    """
+    获取上个5min或者10min的point文件
+    参数：
+        event_src_path: 事件源文件路径
+    返回：
+        pre_5min_10min_point_path: 上个5min或者10min的point文件路径
+    """
+    
+    #去掉.csv后缀后转换为时间，在时间上减去5min或者10min,然后转换为文件路径，格式类似于202505151010.csv，再判断文件是否存在，存在则返回文件路径，不存在则返回None
+    try:
+        import datetime
+        import os
+        
+        # 从文件路径中提取时间信息
+        file_name = os.path.basename(point_path)
+        # 提取时间部分 (例如: 202505151010)
+        time_str = file_name.replace('.csv', '')
+        if len(time_str) != 12:  # 确保时间格式正确
+            print(f"时间格式错误: {time_str}")
+            return None
+        
+        # 解析时间
+        year = int(time_str[:4])
+        month = int(time_str[4:6])
+        day = int(time_str[6:8])
+        hour = int(time_str[8:10])
+        minute = int(time_str[10:12])
+        
+        current_time = datetime.datetime(year, month, day, hour, minute)
+        
+       
+        prev_time_5min = current_time - datetime.timedelta(minutes=5)
+        prev_time_10min = current_time - datetime.timedelta(minutes=10)
+        
+        # 生成前一个时间点的文件名
+        prev_time_5min_str = prev_time_5min.strftime("%Y%m%d%H%M")
+        prev_point_5min_path = point_path.replace(point_path, prev_time_5min_str)
+
+        prev_time_10min_str = prev_time_10min.strftime("%Y%m%d%H%M")
+        prev_point_10min_path = point_path.replace(point_path, prev_time_10min_str)
+        
+        # 判断文件是否存在
+        if os.path.exists(prev_point_5min_path):
+            print(f"找到前一个时间点文件: {prev_point_5min_path}")
+            return prev_point_5min_path
+        elif os.path.exists(prev_point_10min_path):
+            print(f"找到前一个时间点文件: {prev_point_10min_path}")
+            return prev_point_10min_path
+        else:
+            print(f"前一个时间点文件不存在")
+            return None
+            
+    except Exception as e:
+        print(f"获取前一个时间点文件路径时出错: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+def get_suddenly_volume_stock(event_src_path):
+    """
+    获取突然放量的股票
+    参数：
+        event_src_path: 事件源文件路径
+    返回：
+        suddenly_放量_股票: 突然放量的股票列表
+    """
+    #获取当前文件
+    point_path = event_src_path.replace("zt","point")
+    pre_date, today_format = get_pre_trade_date(event_src_path)
+    #获取前一个交易日的point文件
+    pre_day_point_path = point_path.replace(today_format, pre_date)
+
+    #获取上个5min或者10min的point文件，格式类似于202505151010.csv
+    #去掉.csv后缀后转换为时间，在时间上减去5min或者10min
+    pre_point_path   = get_pre_5min_10min_point_path(point_path)
+    pre_pre_day_point_path = get_pre_5min_10min_point_path(pre_day_point_path)
+
+ 
+    #读取csv文件,只获取股票代码和成交量
+    df_point_path = pd.read_csv(point_path, usecols=[1,6])
+    df_pre_point_path  = pd.read_csv(pre_point_path, usecols=[1,6])
+
+    
+    df_pre_day_point_path = pd.read_csv(pre_day_point_path, usecols=[1,6])
+    df_pre_pre_day_point_path  = pd.read_csv(pre_pre_day_point_path, usecols=[1,6])
+
+
+    #根据股票代码和成交量，计算每5min或者10min的成交量
+    # 合并数据框，基于股票代码
+    merged_df = pd.merge(df_point_path, df_pre_point_path, on='代码', suffixes=('_current', '_prev'))
+    
+    # 计算成交量变化：当前成交量 - 前一时间成交量
+    merged_df['成交量变化'] = merged_df['成交量_current'] - merged_df['成交量_prev']
+    merged_df['成交量变化率'] = (merged_df['成交量变化'] / merged_df['成交量_prev'] * 100).fillna(0)
+    
+    # 筛选突然放量的股票 (成交量增加超过100%)
+    suddenly_volume_stocks = merged_df[merged_df['成交量变化率'] > 100].copy()
+    
+    # 按成交量变化率排序
+    suddenly_volume_stocks = suddenly_volume_stocks.sort_values('成交量变化率', ascending=False)
+    
+    print(f"发现 {len(suddenly_volume_stocks)} 只突然放量的股票")
+    
+    return suddenly_volume_stocks.to_dict('records')
+
+
+def process_market_data_and_generate_email(event_src_path):
+    """
+    处理市场数据并生成邮件内容
+    参数：
+        event_src_path: 事件源文件路径
+    返回：
+        email_body: 邮件内容字符串，如果处理失败返回None
+        point:股市打分
+    """
+    try:
+        point_path = event_src_path.replace("zt","point")
+        zb_path = event_src_path.replace("zt","zb")
+
+        pre_date, today_format = get_pre_trade_date(event_src_path)
+        pre_point_path = point_path.replace(today_format, pre_date)
+        pre_zb_path = zb_path.replace(today_format, pre_date)
+        pre_zt_path = event_src_path.replace(today_format, pre_date)
+        
+        print("pre_date:", pre_date)
+        print("pre_point_path:", pre_point_path)
+        print("pre_zb_path:", pre_zb_path)
+        print("event.src_path:", event_src_path)
+
+        # 计算今日数据
+        zt_zj, zt_cj = cal_zt_zj.cal_zt_zj_simple(event_src_path)
+        point = cal_today_point(point_path)
+        zb_cj = cal_zt_zj.cal_zb_zj_simple(zb_path)
+
+        # 判断前一天的文件是否存在，存在则计算，不存在则不计算
+        if os.path.exists(pre_point_path):
+            pre_point = cal_today_point(pre_point_path)
+        else:
+            pre_point = 0.0
+        
+        if os.path.exists(pre_zb_path):
+            pre_zb_cj = cal_zt_zj.cal_zb_zj_simple(pre_zb_path)
+        else:
+            pre_zb_cj = 0.0
+
+        if os.path.exists(pre_zt_path):
+            pre_zt_zj, pre_zt_cj = cal_zt_zj.cal_zt_zj_simple(pre_zt_path)
+        else:
+            pre_zt_zj = 0.0
+            pre_zt_cj = 0.0
+
+        # 计算指数情绪
+        zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs", point_path)
+
+        if os.path.exists(pre_point_path):
+            pre_sz_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs", pre_point_path)
+        else:
+            pre_sz_emotion = {'SSE 50': 30.0, 'CSI 300': 30.0, 'CSI 500': 30.0, 'CSI 1000': 30.0, 'STAR 50': 30.0}
+
+        print("zs_emotion:", zs_emotion)
+        print("pre_sz_emotion:", pre_sz_emotion)
+
+        # 生成邮件内容
+        email_body = "Market Sentiment Monitor\n"
+        email_body += "=" * 40 + "\n"
+        email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
+        email_body += "-" * 40 + "\n"
+        email_body += f"{'Emotion':<15} {point:<10.2f} {pre_point:<10.2f} {'↑' if point > pre_point else '↓' if point < pre_point else '→':<6}\n"
+        email_body += f"{'Seal Fund':<15} {zt_zj:<10.2f} {pre_zt_zj:<10.2f} {((zt_zj-pre_zt_zj)/pre_zt_zj*100 if pre_zt_zj else 0):<.2f}%\n"
+        email_body += f"{'Limit Volume':<15} {zt_cj:<10.2f} {pre_zt_cj:<10.2f} {((zt_cj-pre_zt_cj)/pre_zt_cj*100 if pre_zt_cj else 0):<.2f}%\n"
+        email_body += f"{'Seal Ratio':<15} {(zt_zj/zt_cj if zt_cj else 0):<10.2f} {(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0):<10.2f} {(((zt_zj/zt_cj if zt_cj else 0)-(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0))/(pre_zt_zj/pre_zt_cj if pre_zt_cj else 1)*100 if pre_zt_cj else 0):<.2f}%\n"
+        email_body += f"{'Break Volume':<15} {zb_cj:<10.2f} {pre_zb_cj:<10.2f} {((zb_cj-pre_zb_cj)/pre_zb_cj*100 if pre_zb_cj else 0):<.2f}%\n"
+        email_body += f"{'Total Volume':<15} {(zb_cj+zt_cj):<10.2f} {(pre_zb_cj+pre_zt_cj):<10.2f} {(((zb_cj+zt_cj)-(pre_zb_cj+pre_zt_cj))/(pre_zb_cj+pre_zt_cj)*100 if (pre_zb_cj+pre_zt_cj) else 0):<.2f}%\n"
+        email_body += "=" * 40 + "\n"
+        
+        # 指数情绪表格
+        email_body += "\nIndex Monitor\n"
+        email_body += "=" * 40 + "\n"
+        email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
+        email_body += "-" * 40 + "\n"
+        for key in zs_emotion.keys():
+            email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {'↑' if zs_emotion[key] > pre_sz_emotion[key] else '↓' if zs_emotion[key] < pre_sz_emotion[key] else '→':<6}\n"
+        email_body += "=" * 40 + "\n"
+
+        return email_body,point
+        
+    except Exception as e:
+        print("process_market_data_and_generate_email error:", e)
+        import traceback
+        traceback.print_exc()
+        return None,None
+
 
 def monitor_directory(path):
     """监控指定目录的新增文件"""
