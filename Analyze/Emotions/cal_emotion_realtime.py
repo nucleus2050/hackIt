@@ -118,8 +118,8 @@ class DetectFileHandler(FileSystemEventHandler):
                         return
 
                     # 获取突然放量的股票
-                    stocks = get_suddenly_volume_stock(event.src_path)
-                    print(stocks)
+                    # stocks = get_suddenly_volume_stock(event.src_path)
+                    # print(stocks)
 
 
                     if point < 30.0 and point > 0.0:
@@ -219,12 +219,12 @@ def get_suddenly_volume_stock(event_src_path):
 
  
     #读取csv文件,只获取股票代码和成交量
-    df_point_path = pd.read_csv(point_path, usecols=[1,6])
-    df_pre_point_path  = pd.read_csv(pre_point_path, usecols=[1,6])
+    df_point_path = pd.read_csv(point_path, usecols=[1,2,6])
+    df_pre_point_path  = pd.read_csv(pre_point_path, usecols=[1,2,6])
 
     
-    df_pre_day_point_path = pd.read_csv(pre_day_point_path, usecols=[1,6])
-    df_pre_pre_day_point_path  = pd.read_csv(pre_pre_day_point_path, usecols=[1,6])
+    df_pre_day_point_path = pd.read_csv(pre_day_point_path, usecols=[1,2,6])
+    df_pre_pre_day_point_path  = pd.read_csv(pre_pre_day_point_path, usecols=[1,2,6])
 
 
     #根据股票代码和成交量，计算每5min或者10min的成交量
@@ -236,7 +236,7 @@ def get_suddenly_volume_stock(event_src_path):
     merged_df['成交量变化率'] = (merged_df['成交量变化'] / merged_df['成交量_prev'] * 100).fillna(0)
     
     # 筛选突然放量的股票 (成交量增加超过100%)
-    suddenly_volume_stocks = merged_df[merged_df['成交量变化率'] > 100].copy()
+    suddenly_volume_stocks = merged_df[merged_df['成交量变化率'] > 500].copy()
     
     # 按成交量变化率排序
     suddenly_volume_stocks = suddenly_volume_stocks.sort_values('成交量变化率', ascending=False)
