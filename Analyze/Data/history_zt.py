@@ -21,7 +21,11 @@ def get_all_zt_code_real_time(date):
         os.makedirs("./Data/daily/zt/"+date)
     #获取当前时间,并将时间转换为年月日时分
     now = datetime.datetime.now()
-    file_name = "./Data/daily/zt/"+date + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
+    # 将分钟数向下取整到5的倍数
+    rounded_minute = (now.minute // 5) * 5
+    # 创建新的时间对象，使用取整后的分钟数
+    rounded_time = now.replace(minute=rounded_minute, second=0, microsecond=0)
+    file_name = "./Data/daily/zt/"+date + "/" + rounded_time.strftime("%Y%m%d%H%M") + ".csv"
     stock_zt_df.to_csv(file_name, index=False)
     print(f"实时股票数据已保存至 {file_name}")
     return stock_zt_df
@@ -35,7 +39,11 @@ def get_all_zb_code_real_time(date):
         os.makedirs("./Data/daily/zb/"+date)
     #获取当前时间,并将时间转换为年月日时分
     now = datetime.datetime.now()
-    file_name = "./Data/daily/zb/"+date + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
+    # 将分钟数向下取整到5的倍数
+    rounded_minute = (now.minute // 5) * 5
+    # 创建新的时间对象，使用取整后的分钟数
+    rounded_time = now.replace(minute=rounded_minute, second=0, microsecond=0)
+    file_name = "./Data/daily/zb/"+date + "/" + rounded_time.strftime("%Y%m%d%H%M") + ".csv"
     stock_zb_df.to_csv(file_name, index=False)
     print(f"实时股票数据已保存至 {file_name}")
     return stock_zb_df

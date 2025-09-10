@@ -41,7 +41,11 @@ def get_all_real_time():
     if not os.path.exists("./Data/daily/point/"+now.strftime("%Y%m%d")):
         os.makedirs("./Data/daily/point/"+now.strftime("%Y%m%d"))
     #保存到csv文件中
-    file_name = "./Data/daily/point/"+now.strftime("%Y%m%d") + "/" + now.strftime("%Y%m%d%H%M") + ".csv"
+    # 将分钟数向下取整到5的倍数
+    rounded_minute = (now.minute // 5) * 5
+    # 创建新的时间对象，使用取整后的分钟数
+    rounded_time = now.replace(minute=rounded_minute, second=0, microsecond=0)
+    file_name = "./Data/daily/point/"+now.strftime("%Y%m%d") + "/" + rounded_time.strftime("%Y%m%d%H%M") + ".csv"
     stock_df.to_csv(file_name, index=False)
     print(f"实时股票数据已保存至 {file_name}")
     return stock_df
