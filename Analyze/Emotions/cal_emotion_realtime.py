@@ -262,40 +262,29 @@ def get_top_50_rise(point_path,pre_point_path):
 
     #读取csv文件,代码、名称、涨跌幅
     df = pd.read_csv(point_path, usecols=[1,2,4])
-    #获取最高价、最低价、收盘价
-    code = df['代码'].tolist()
-    name = df['名称'].tolist()
-    rise = df['涨跌幅'].tolist()
-    #计算当天的挣钱效应
-    if len(high) != len(low) or len(high) != len(close):
-        print("数据长度不一致")
-        return None,None
-    if len(high) == 0 or len(low) == 0 or len(close) == 0:
-        print("数据长度为0")
-        return None,None
     #读取前一个周期的csv文件,代码、名称、涨跌幅
     df_pre = pd.read_csv(pre_point_path, usecols=[1,2,4])
-    code_pre = df_pre['代码'].tolist()
-    name_pre = df_pre['名称'].tolist()
-    rise_pre = df_pre['涨跌幅'].tolist()
-    #计算前一个周期的挣钱效应
-    if len(code_pre) != len(code) or len(code_pre) != len(rise_pre):
-        print("数据长度不一致")
-        return None,None
-    if len(code_pre) == 0 or len(name_pre) == 0 or len(rise_pre) == 0:
-        print("数据长度为0")
-        return None,None
     #以代码为key，将当前的涨跌幅和前一个周期的涨跌幅相减，得到涨跌幅差值
-    rise_diff = {}
-    for i in range(len(code)):
-        rise_diff[code[i]] = rise[i] - rise_pre[i]
-    des_diff = {}
-    for i in range(len(code)):
-        des_diff[code[i]] = rise_pre[i] - rise[i]
-    #将涨跌幅差值排序，得到前50个涨跌幅差值最大的股票
-    rise_diff = sorted(rise_diff.items(), key=lambda x: x[1], reverse=True)
-    des_diff = sorted(des_diff.items(), key=lambda x: x[1], reverse=False)
-    return rise_diff[:50],des_diff[:50]
+    
+    # 重命名列名以便后续操作
+    df.columns = ['代码', '名称', '涨跌幅']
+    df_pre.columns = ['代码', '名称', '涨跌幅']
+    
+    # 合并当前和前一个周期的数据，以代码为key
+    merged_df = pd.merge(df, df_pre, on='代码', how='inner', suffixes=('_current', '_pre'))
+    
+    # 计算涨跌幅差值（当前涨跌幅 - 前一个周期涨跌幅）
+    merged_df['涨跌幅差值'] = merged_df['涨跌幅_current'] - merged_df['涨跌幅_pre']
+    
+    # 获取涨幅最大的50只股票（涨跌幅差值最大的50只）
+    top50 = merged_df.nlargest(50, '涨跌幅差值')[['代码', '名称_current', '涨跌幅差值']].copy()
+    top50.columns = ['代码', '名称', '涨幅']
+    
+    # 获取跌幅最大的50只股票（涨跌幅差值最小的50只）
+    des50 = merged_df.nsmallest(50, '涨跌幅差值')[['代码', '名称_current', '涨跌幅差值']].copy()
+    des50.columns = ['代码', '名称', '跌幅']
+    
+    return top50, des50
 
 
 
