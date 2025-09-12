@@ -28,8 +28,6 @@ def cal_daily_point(high,low,close):
     return point/len(high)
 
 def cal_today_point(csv_path):
-    import os
-    import pandas as pd
     #读取csv文件,只获取最高、最低、收盘列
     df = pd.read_csv(csv_path, usecols=[9,10,3])
     #获取最高价、最低价、收盘价
@@ -132,6 +130,11 @@ class DetectFileHandler(FileSystemEventHandler):
                     import traceback
                     traceback.print_exc()
                     
+
+
+
+
+
 
 def  get_pre_5min_10min_point_path(point_path):
     """
@@ -246,6 +249,56 @@ def get_suddenly_volume_stock(event_src_path):
     return suddenly_volume_stocks.to_dict('records')
 
 
+
+def get_top_50_rise(point_path,pre_point_path):
+    """
+    参数：
+        point_path: 事件源文件路径
+        pre_point_path: 前一个周期的point文件路径
+    返回：
+        top50: 50个涨幅最大的股票，包括股票代号、股票名、涨幅三个数据项
+        des50: 50个跌幅最大的股票，包括股票代号、股票名、跌幅三个数据项
+    """
+
+    #读取csv文件,代码、名称、涨跌幅
+    df = pd.read_csv(point_path, usecols=[1,2,4])
+    #获取最高价、最低价、收盘价
+    code = df['代码'].tolist()
+    name = df['名称'].tolist()
+    rise = df['涨跌幅'].tolist()
+    #计算当天的挣钱效应
+    if len(high) != len(low) or len(high) != len(close):
+        print("数据长度不一致")
+        return None,None
+    if len(high) == 0 or len(low) == 0 or len(close) == 0:
+        print("数据长度为0")
+        return None,None
+    #读取前一个周期的csv文件,代码、名称、涨跌幅
+    df_pre = pd.read_csv(pre_point_path, usecols=[1,2,4])
+    code_pre = df_pre['代码'].tolist()
+    name_pre = df_pre['名称'].tolist()
+    rise_pre = df_pre['涨跌幅'].tolist()
+    #计算前一个周期的挣钱效应
+    if len(code_pre) != len(code) or len(code_pre) != len(rise_pre):
+        print("数据长度不一致")
+        return None,None
+    if len(code_pre) == 0 or len(name_pre) == 0 or len(rise_pre) == 0:
+        print("数据长度为0")
+        return None,None
+    #以代码为key，将当前的涨跌幅和前一个周期的涨跌幅相减，得到涨跌幅差值
+    rise_diff = {}
+    for i in range(len(code)):
+        rise_diff[code[i]] = rise[i] - rise_pre[i]
+    des_diff = {}
+    for i in range(len(code)):
+        des_diff[code[i]] = rise_pre[i] - rise[i]
+    #将涨跌幅差值排序，得到前50个涨跌幅差值最大的股票
+    rise_diff = sorted(rise_diff.items(), key=lambda x: x[1], reverse=True)
+    des_diff = sorted(des_diff.items(), key=lambda x: x[1], reverse=False)
+    return rise_diff[:50],des_diff[:50]
+
+
+
 def process_market_data_and_generate_email(event_src_path):
     """
     处理市场数据并生成邮件内容
@@ -290,6 +343,10 @@ def process_market_data_and_generate_email(event_src_path):
         else:
             pre_zt_zj = 0.0
             pre_zt_cj = 0.0
+
+        top50_rise,top50_des = get_top_50_rise(point_path,pre_point_path)
+        print("top50_rise:",top50_rise)
+        print("top50_des:",top50_des)
 
         # 计算指数情绪
         zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs", point_path)
