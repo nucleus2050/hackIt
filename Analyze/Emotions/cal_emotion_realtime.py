@@ -256,8 +256,8 @@ def get_top_50_rise(point_path,pre_point_path):
         point_path: 事件源文件路径
         pre_point_path: 前一个周期的point文件路径
     返回：
-        top50: 50个涨幅最大的股票，包括股票代号、股票名、涨幅三个数据项
-        des50: 50个跌幅最大的股票，包括股票代号、股票名、跌幅三个数据项
+        top50_str: 50个涨幅最大的股票字符串
+        des50_str: 50个跌幅最大的股票字符串
     """
 
     #读取csv文件,代码、名称、涨跌幅
@@ -284,7 +284,27 @@ def get_top_50_rise(point_path,pre_point_path):
     des50 = merged_df.nsmallest(50, '涨跌幅差值')[['代码', '名称_current', '涨跌幅差值']].copy()
     des50.columns = ['代码', '名称', '跌幅']
     
-    return top50, des50
+    # 转换为字符串格式
+    def dataframe_to_string(df, title):
+        """将DataFrame转换为格式化的字符串"""
+        if df.empty:
+            return f"{title}:\n暂无数据\n"
+        result = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+        result += f"{title}:\n"
+        result += "=" * 50 + "\n"
+        result += f"{'代码':<10} {'名称':<15} {'涨跌幅':<10}\n"
+        result += "-" * 50 + "\n"
+        
+        for _, row in df.iterrows():
+            result += f"{row['代码']:<10} {row['名称']:<15} {row.iloc[2]:<10.2f}%\n"
+        
+        result += "=" * 50 + "\n\n"
+        return result
+    
+    top50_str = dataframe_to_string(top50, "涨幅前50名股票")
+    des50_str = dataframe_to_string(des50, "跌幅前50名股票")
+    
+    return top50_str, des50_str
 
 
 
@@ -333,9 +353,7 @@ def process_market_data_and_generate_email(event_src_path):
             pre_zt_zj = 0.0
             pre_zt_cj = 0.0
 
-        top50_rise,top50_des = get_top_50_rise(point_path,pre_point_path)
-        print("top50_rise:",top50_rise)
-        print("top50_des:",top50_des)
+        top50_rise_str, top50_des_str = get_top_50_rise(point_path,pre_point_path)
 
         # 计算指数情绪
         zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs", point_path)
