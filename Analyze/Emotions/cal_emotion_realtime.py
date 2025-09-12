@@ -289,8 +289,7 @@ def get_top_50_rise(point_path,pre_point_path):
         """将DataFrame转换为格式化的字符串"""
         if df.empty:
             return f"{title}:\n暂无数据\n"
-        result = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
-        result += f"{title}:\n"
+        result = f"{title}:\n"
         result += "=" * 50 + "\n"
         result += f"{'代码':<10} {'名称':<15} {'涨跌幅':<10}\n"
         result += "-" * 50 + "\n"
@@ -387,6 +386,10 @@ def process_market_data_and_generate_email(event_src_path):
         for key in zs_emotion.keys():
             email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {'↑' if zs_emotion[key] > pre_sz_emotion[key] else '↓' if zs_emotion[key] < pre_sz_emotion[key] else '→':<6}\n"
         email_body += "=" * 40 + "\n"
+
+        email_body += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+        email_body += top50_rise_str
+        email_body += top50_des_str
 
         return email_body,point
         
