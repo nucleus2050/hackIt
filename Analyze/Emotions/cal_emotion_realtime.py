@@ -352,7 +352,7 @@ def process_market_data_and_generate_email(event_src_path):
             pre_zt_zj = 0.0
             pre_zt_cj = 0.0
 
-        top50_rise_str, top50_des_str = get_top_50_rise(point_path,pre_point_path)
+        # top50_rise_str, top50_des_str = get_top_50_rise(point_path,pre_point_path)
 
         # 计算指数情绪
         zs_emotion = cal_zs_emotion.cal_zs_emotion("./Data/zs", point_path)
@@ -387,9 +387,9 @@ def process_market_data_and_generate_email(event_src_path):
             email_body += f"{key:<15} {zs_emotion[key]:<10.2f} {pre_sz_emotion[key]:<10.2f} {'↑' if zs_emotion[key] > pre_sz_emotion[key] else '↓' if zs_emotion[key] < pre_sz_emotion[key] else '→':<6}\n"
         email_body += "=" * 40 + "\n"
 
-        email_body += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
-        email_body += top50_rise_str
-        email_body += top50_des_str
+        # email_body += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+        # email_body += top50_rise_str
+        # email_body += top50_des_str
 
         return email_body,point
         
