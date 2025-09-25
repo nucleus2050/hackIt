@@ -27,6 +27,7 @@ def cal_daily_point(high,low,close):
         
     return point/len(high)
 
+#计算当天市场行情得分
 def cal_today_point(csv_path):
     #读取csv文件,只获取最高、最低、收盘列
     df = pd.read_csv(csv_path, usecols=[9,10,3])
@@ -43,6 +44,36 @@ def cal_today_point(csv_path):
         return 0
     point = cal_daily_point(high,low,close)
     return point
+
+#加权计算当天行情得分，权重为资金量占总资金量的比例
+def cal_weighted_today_point(csv_path):
+    df = pd.read_csv(csv_path, usecols=[9,10,3,7])
+    #获取最高价、最低价、收盘价、成交额
+    high = df['最高'].tolist()
+    low = df['最低'].tolist()
+    close = df['最新价'].tolist()
+    deal_amount = df['成交额'].tolist()
+    #计算当天市场行情得分
+    if len(high) != len(low) or len(high) != len(close) or len(high) != len(deal_amount):
+        print("数据长度不一致")
+        return 0
+    if len(high) == 0 or len(low) == 0 or len(close) == 0 or len(deal_amount) == 0:
+        print("数据长度为0")
+        return 0
+    
+    total_deal_amount = sum(deal_amount)
+    point = 0
+    for i in range(len(high)):
+        h = float(high[i])
+        l = float(low[i])
+        c = float(close[i])
+        da = float(deal_amount[i])
+        if h == l and c == l:
+            point = point + 100 * da / total_deal_amount
+        else :
+            point = point + (c - l) * 100 / (h-l) * da / total_deal_amount
+    return point
+
 
 def send_email(sender, password, receiver, subject, body):
     # 设置邮件内容
@@ -335,11 +366,17 @@ def process_market_data_and_generate_email(event_src_path):
         point = cal_today_point(point_path)
         zb_cj = cal_zt_zj.cal_zb_zj_simple(zb_path)
 
+        weighted_point = cal_weighted_today_point(point_path)
+
+        # print("weighted_point:", weighted_point)
+
         # 判断前一天的文件是否存在，存在则计算，不存在则不计算
         if os.path.exists(pre_point_path):
             pre_point = cal_today_point(pre_point_path)
+            pre_weighted_point = cal_weighted_today_point(pre_point_path)
         else:
             pre_point = 0.0
+            pre_weighted_point = 0.0
         
         if os.path.exists(pre_zb_path):
             pre_zb_cj = cal_zt_zj.cal_zb_zj_simple(pre_zb_path)
@@ -371,6 +408,7 @@ def process_market_data_and_generate_email(event_src_path):
         email_body += f"{'Metric':<15} {'Today':<10} {'Yesterday':<10} {'Trend':<10}\n"
         email_body += "-" * 40 + "\n"
         email_body += f"{'Emotion':<15} {point:<10.2f} {pre_point:<10.2f} {'↑' if point > pre_point else '↓' if point < pre_point else '→':<6}\n"
+        email_body += f"{'Weighted Emotion':<15} {weighted_point:<10.2f} {pre_weighted_point:<10.2f} {'↑' if weighted_point > pre_weighted_point else '↓' if weighted_point < pre_weighted_point else '→':<6}\n"
         email_body += f"{'Seal Fund':<15} {zt_zj:<10.2f} {pre_zt_zj:<10.2f} {((zt_zj-pre_zt_zj)/pre_zt_zj*100 if pre_zt_zj else 0):<.2f}%\n"
         email_body += f"{'Limit Volume':<15} {zt_cj:<10.2f} {pre_zt_cj:<10.2f} {((zt_cj-pre_zt_cj)/pre_zt_cj*100 if pre_zt_cj else 0):<.2f}%\n"
         email_body += f"{'Seal Ratio':<15} {(zt_zj/zt_cj if zt_cj else 0):<10.2f} {(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0):<10.2f} {(((zt_zj/zt_cj if zt_cj else 0)-(pre_zt_zj/pre_zt_cj if pre_zt_cj else 0))/(pre_zt_zj/pre_zt_cj if pre_zt_cj else 1)*100 if pre_zt_cj else 0):<.2f}%\n"
