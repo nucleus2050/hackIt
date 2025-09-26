@@ -77,21 +77,48 @@ def cal_weighted_today_point(csv_path):
 
 def send_email(sender, password, receiver, subject, body):
     # 设置邮件内容
-    message = MIMEMultipart()
-    message['From'] = sender
-    message['To'] = receiver
-    message['Subject'] = subject
+    # message = MIMEMultipart()
+    # message['From'] = sender
+    # message['To'] = receiver
+    # message['Subject'] = subject
     
-    message.attach(MIMEText(body, 'plain'))
+    # message.attach(MIMEText(body, 'plain'))
     
+    # try:
+    #     with smtplib.SMTP_SSL('smtp.139.com', 465,timeout=3) as server:
+    #         server.login(sender, password)  
+    #         server.sendmail(sender, receiver, message.as_string())
+    #         server.quit()
+    #     print("邮件发送成功!")
+    # except Exception as e:
+    #     print(f"邮件发送失败: {e}")
+    # 将文件内容写到每天一个的notify文件中，并写明当前时间
     try:
-        with smtplib.SMTP_SSL('smtp.139.com', 465,timeout=3) as server:
-            server.login(sender, password)  
-            server.sendmail(sender, receiver, message.as_string())
-            server.quit()
-        print("邮件发送成功!")
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        current_date = time.strftime("%Y-%m-%d", time.localtime())
+        notify_content = f"[{current_time}] {subject}\n{body}\n{'='*50}\n"
+        
+        # 确保目录存在
+        notify_dir = "/root/notify"
+        if not os.path.exists(notify_dir):
+            notify_dir = "./"  # 如果/root目录不存在，使用当前目录
+        
+        # 每天创建一个新的通知文件，文件名包含日期
+        notify_file = os.path.join(notify_dir, f"notify_{current_date}.txt")
+        
+        with open(notify_file, "a", encoding="utf-8") as f:
+            f.write(notify_content)
+        
+        # print(f"通知已写入文件: {notify_file}")
+        
+        # 清理7天前的通知文件
+        # cleanup_old_notify_files(notify_dir)
+        
+        return True
     except Exception as e:
-        print(f"邮件发送失败: {e}")
+        print(f"写入通知文件失败: {e}")
+        return False
+
 
 sender_email = "15889320552@139.com"
 sender_password = "729edf5972210c3ded00" 
@@ -130,11 +157,11 @@ class DetectFileHandler(FileSystemEventHandler):
         if not event.is_directory:
             print(f"检测到新文件: {event.src_path}")
             #判读是否在9:30之前，如果是则什么也不干
-            import datetime
-            now = datetime.datetime.now()
-            if now.hour < 9 or (now.hour == 9 and now.minute < 25):
-                print("9:30之前，不计算")
-                return
+            # import datetime
+            # now = datetime.datetime.now()
+            # if now.hour < 9 or (now.hour == 9 and now.minute < 25):
+            #     print("9:30之前，不计算")
+            #     return
             
             if "zt" in event.src_path:
                 time.sleep(1)
