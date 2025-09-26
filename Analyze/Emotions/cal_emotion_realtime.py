@@ -96,7 +96,7 @@ def send_email(sender, password, receiver, subject, body):
     try:
         current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         current_date = time.strftime("%Y-%m-%d", time.localtime())
-        notify_content = f"[{current_time}] {subject}\n{body}\n{'='*50}\n"
+        notify_content = f"[{current_time}] {subject}\n{body}\n\n\n\n\n\n\n\n\n\n\n"
         
         # 确保目录存在
         notify_dir = "/root/notify"
