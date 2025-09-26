@@ -75,17 +75,7 @@ def cal_weighted_today_point(csv_path):
     return point
 
 
-def send_email(sender, password, receiver, subject, body, max_retries=10):
-    """
-    发送邮件，支持重试机制
-    参数:
-        sender: 发送者邮箱
-        password: 邮箱密码
-        receiver: 接收者邮箱
-        subject: 邮件主题
-        body: 邮件正文
-        max_retries: 最大重试次数，默认10次
-    """
+def send_email(sender, password, receiver, subject, body):
     # 设置邮件内容
     message = MIMEMultipart()
     message['From'] = sender
@@ -94,25 +84,14 @@ def send_email(sender, password, receiver, subject, body, max_retries=10):
     
     message.attach(MIMEText(body, 'plain'))
     
-    for attempt in range(max_retries):
-        try:
-            with smtplib.SMTP_SSL('smtp.139.com', 465, timeout=3) as server:
-                server.login(sender, password)  
-                server.sendmail(sender, receiver, message.as_string())  
-            print(f"邮件发送成功! (第{attempt + 1}次尝试)")
-            return True
-        except Exception as e:
-            print(f"邮件发送失败 (第{attempt + 1}次尝试): {e}")
-            if attempt < max_retries - 1:
-                # 等待一段时间后重试，使用指数退避策略
-                wait_time = min(2 ** attempt, 30)  # 最多等待30秒
-                print(f"等待 {wait_time} 秒后重试...")
-                time.sleep(wait_time)
-            else:
-                print(f"邮件发送失败，已重试 {max_retries} 次")
-                return False
-    
-    return False
+    try:
+        with smtplib.SMTP_SSL('smtp.139.com', 465,timeout=3) as server:
+            server.login(sender, password)  
+            server.sendmail(sender, receiver, message.as_string())
+            server.quit()
+        print("邮件发送成功!")
+    except Exception as e:
+        print(f"邮件发送失败: {e}")
 
 sender_email = "15889320552@139.com"
 sender_password = "729edf5972210c3ded00" 
