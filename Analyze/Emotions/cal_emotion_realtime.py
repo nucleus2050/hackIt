@@ -85,7 +85,7 @@ def send_email(sender, password, receiver, subject, body):
     message.attach(MIMEText(body, 'plain'))
     
     try:
-        with smtplib.SMTP_SSL('smtp.139.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.139.com', 465,timeout=3) as server:
             server.login(sender, password)  
             server.sendmail(sender, receiver, message.as_string())  
         print("邮件发送成功!")
@@ -93,7 +93,7 @@ def send_email(sender, password, receiver, subject, body):
         print(f"邮件发送失败: {e}")
 
 sender_email = "15889320552@139.com"
-sender_password = "99c56e7298db37305600" 
+sender_password = "729edf5972210c3ded00" 
 receiver_email = "15889320552@139.com"
 email_subject_notify = "nofify"
 email_subject_alter = "alter"
