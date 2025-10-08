@@ -395,8 +395,8 @@ class RealTimeMarket:
                 self.update_data()
                 self.display_market_data()
                 
-                print(f"\n{self.colors['yellow']}按 Ctrl+C 退出程序{self.colors['end']}")
-                print(f"{self.colors['cyan']}下次更新: {self.update_interval} 秒后{self.colors['end']}")
+                # print(f"\n{self.colors['yellow']}按 Ctrl+C 退出程序{self.colors['end']}")
+                # print(f"{self.colors['cyan']}下次更新: {self.update_interval} 秒后{self.colors['end']}")
                 
                 # 等待更新间隔
                 for i in range(self.update_interval):
